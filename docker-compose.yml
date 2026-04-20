@@ -1,0 +1,11 @@
+services:
+  db:
+      image: pgvector/pgvector:pg16
+      environment:
+        POSTGRES_USER: aeromind
+        POSTGRES_PASSWORD: aeromind
+        POSTGRES_DB: aeromind
+      ports:
+        - "5432:5432"
+      volumes:
+        - ./aeromind/db/sql:/docker-entrypoint-initdb.d
