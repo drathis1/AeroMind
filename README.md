@@ -263,7 +263,39 @@ Real interaction traces captured from running workflows are in the `traces/` fol
 
 ## Evaluation Plan
 
-See [`evaluation_plan.md`](./evaluation_plan.md) for the full test matrix: 35 scenarios across 6 dimensions (end-to-end, governance, escalation, injection, LLM-as-judge, audit), with success criteria, measures, and a 4-phase execution plan.
+See [`Evaluation plan.md`](./Evaluation%20plan.md) for the full test matrix: 35 scenarios across 6 dimensions (end-to-end, governance, escalation, injection, LLM-as-judge, audit), with success criteria, measures, and a 4-phase execution plan.
+
+### Phase 3 evaluation package (`eval/`)
+
+Eight completed scenarios (including two failure-containment cases) sampled from the 35-scenario matrix. Each scenario has a real JSON trace and a labeled screenshot.
+
+| File | Purpose |
+|---|---|
+| [`docs/final_report.md`](./docs/final_report.md) | **Phase 3 final report** (export to PDF) |
+| [`docs/architecture_diagram.png`](./docs/architecture_diagram.png) | Standalone architecture diagram (Mermaid source: `docs/architecture_diagram.mmd`) |
+| [`docs/screenshots/`](./docs/screenshots) | 10 labeled evidence PNGs + [`screenshot_index.md`](./docs/screenshots/screenshot_index.md) |
+| [`eval/test_cases.csv`](./eval/test_cases.csv) | 8 scenarios: E2E-01, E2E-02, GOV-01, GOV-02, JDG-01, INJ-01, ESC-01, AUD-02 |
+| [`eval/evaluation_results.csv`](./eval/evaluation_results.csv) | Actual behavior, PASS/FAIL, evidence pointers |
+| [`eval/failure_log.md`](./eval/failure_log.md) | FL-001 (DG lock) and FL-002 (blast-radius cap) in template form |
+| [`eval/failure_analysis.md`](./eval/failure_analysis.md) | Narrative: trigger → behavior → severity → next steps |
+| [`eval/version_notes.md`](./eval/version_notes.md) | Commit, env, runner versions |
+| [`eval/pytest_phase3_run.txt`](./eval/pytest_phase3_run.txt) | Raw `pytest -v` output — 8/8 passed |
+| [`eval/capture_traces.py`](./eval/capture_traces.py) | Deterministic evidence-capture script (writes to `traces/`) |
+| [`eval/render_screenshots.py`](./eval/render_screenshots.py) | Screenshot renderer (writes to `docs/screenshots/`) |
+| [`AI_USAGE.md`](./AI_USAGE.md) | AI tool disclosure |
+| [`media/demo_video_link.txt`](./media/demo_video_link.txt) | 5-minute demo video link (record + paste URL) |
+| [`phase_submissions/phase3/`](./phase_submissions/phase3) | Canvas-friendly submission bundle (checklist, reflections folder) |
+
+Reproduce end to end:
+
+```bash
+pip install -e ".[dev]"
+PYTHONPATH=. python3 -m pytest tests/ -v | tee eval/pytest_phase3_run.txt
+PYTHONPATH=. python3 eval/capture_traces.py
+PYTHONPATH=. python3 -m uvicorn aeromind.api.main:app --host 127.0.0.1 --port 8765 &
+PYTHONPATH=. python3 eval/render_screenshots.py
+python3 docs/render_architecture.py
+```
 
 ---
 

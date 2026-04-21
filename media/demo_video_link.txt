@@ -1,0 +1,22 @@
+AeroMind — Phase 3 demo video
+=============================
+
+Record a 5-minute walkthrough (see packet §"5-minute video requirements")
+and paste the shareable URL on the line below.
+
+LINK: <replace-with-Drive-or-YouTube-unlisted-URL>
+
+Suggested script (≈5 min):
+  0:00–0:30  Problem + user (use docs/final_report.md §1 bullets)
+  0:30–1:00  Architecture (show docs/architecture_diagram.png on screen)
+  1:00–2:45  Main workflow live:
+             - `pytest tests/ -v` showing 8/8 green
+             - `uvicorn aeromind.api.main:app` + curl the demo pipeline
+             - Show a trace JSON (traces/trace_E2E02_weather_disruption.json)
+  2:45–3:45  Governance / evidence layer:
+             - docs/screenshots/06_judge_JDG01_ungrounded.png
+             - docs/screenshots/09_audit_AUD02_tamper_detected.png
+  3:45–4:30  Failure cases:
+             - docs/screenshots/04_failure_GOV01_dg_lock.png (DG lock)
+             - docs/screenshots/05_failure_GOV02_blast_radius.png (blast cap)
+  4:30–5:00  Limitations + one-line ask for next phase

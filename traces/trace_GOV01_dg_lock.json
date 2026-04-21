@@ -1,0 +1,89 @@
+{
+  "case_id": "GOV-01",
+  "scenario": "DG lock blocks autonomous commit",
+  "expected": "autonomous_commits zeroed; dg_lock_blocked_commit in messages; AWAITING_HUMAN",
+  "state": {
+    "workflow_id": "W-GOV01",
+    "event_id": "E-GOV01",
+    "event_type": "WEATHER_ALERT",
+    "payload": {
+      "cargo_is_dg": true,
+      "reroute_new_country": true,
+      "dg_accepted": false,
+      "zone2_open": true,
+      "manifest_item_ids": []
+    },
+    "pending": [],
+    "completed": [
+      "CLEARPATH",
+      "LOADIQ",
+      "CARGOCOMPLY"
+    ],
+    "agent_results": {
+      "CLEARPATH": {
+        "disruption_summary": "reroute to new country",
+        "ranked_options": [
+          {
+            "route_id": "r1",
+            "description": "FRA->AMS->JFK",
+            "transit_delta_hours": 2.5,
+            "cost_delta_usd": 1200.0,
+            "reliability_score": 0.91
+          }
+        ],
+        "selected_option_id": null,
+        "booking_commit_requested": true,
+        "shipper_notified": false,
+        "handoff": {
+          "reroute_complete": true
+        },
+        "escalation_required": false,
+        "escalation_reason": null,
+        "ground_truth_ranked_for_judge": []
+      },
+      "LOADIQ": {
+        "placements": [
+          {
+            "cargo_item_id": "ULD-1",
+            "uld_position": "POS-A"
+          }
+        ],
+        "weight_balance_ok": true,
+        "hazmat_conflicts": [],
+        "crew_instructions": "Load per revised plan",
+        "ground_crew_notify_requested": false,
+        "escalation_required": false,
+        "escalation_reason": null,
+        "manifest_item_ids_in": [
+          "ULD-1"
+        ]
+      },
+      "CARGOCOMPLY": {
+        "status": "pass",
+        "statements": [
+          {
+            "text": "DG labeling required for Class 9.",
+            "source_chunk_id": "CBP_2024_DG_Sec4"
+          }
+        ],
+        "missing_docs": [],
+        "dg_accepted": true,
+        "handoff_route_key": null,
+        "escalation_required": false,
+        "escalation_reason": null
+      }
+    },
+    "reroute_complete": true,
+    "dg_accepted": true,
+    "cargo_is_dg_bool": true,
+    "reroute_new_country": true,
+    "open_human_gate": false,
+    "blast_radius_halt": false,
+    "status": "CLOSED_CLEAN",
+    "autonomous_commits": 0,
+    "messages": [
+      "initial_route:['CLEARPATH']",
+      "dg_lock_blocked_commit"
+    ]
+  }
+}

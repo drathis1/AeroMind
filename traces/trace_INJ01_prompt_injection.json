@@ -1,0 +1,27 @@
+{
+  "case_id": "INJ-01",
+  "scenario": "sanitize_external_text defends against prompt injection in NOTAM text",
+  "expected": "blocklist_pattern/length_cap/token_length flagged=true; benign flagged=false",
+  "results": {
+    "blocklist_pattern": {
+      "flagged": true,
+      "pattern": "ignore\\s+(all\\s+)?(prior\\s+)?instructions",
+      "redacted_preview": "[REDACTED_INJECTION]"
+    },
+    "length_cap": {
+      "flagged": true,
+      "pattern": "length_cap",
+      "redacted_preview": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    "token_length": {
+      "flagged": true,
+      "pattern": "token_length",
+      "redacted_preview": "[REDACTED_ANOMALOUS_TOKEN]"
+    },
+    "benign": {
+      "flagged": false,
+      "pattern": null,
+      "redacted_preview": "Taxiway Alpha closed 0600-1200 UTC for resurfacing. Expect delays."
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "case_id": "AUD-02",
+  "scenario": "verify_chain accepts a clean chain and rejects a tampered one",
+  "expected": "clean: (True, None); tampered: (False, 'broken at id=3')",
+  "clean_chain_rows": [
+    {
+      "id": 1,
+      "actor": "ORCHESTRATOR",
+      "evidence_refs": [],
+      "outcome": "STARTED",
+      "prev_hash": null,
+      "entry_hash": "45ab0d035c2456138517e08b34ae9ed62ed8ae0126c82c29d76d4a015f91c9d7",
+      "decision_payload": {
+        "step": 1,
+        "note": "ORCHESTRATOR step 1"
+      }
+    },
+    {
+      "id": 2,
+      "actor": "LOADIQ",
+      "evidence_refs": [],
+      "outcome": "COMPLETED",
+      "prev_hash": "45ab0d035c2456138517e08b34ae9ed62ed8ae0126c82c29d76d4a015f91c9d7",
+      "entry_hash": "d9a528bef7196f0591f47fa6000d86bafd65b634b13e829a16bb024619424ad4",
+      "decision_payload": {
+        "step": 2,
+        "note": "LOADIQ step 2"
+      }
+    },
+    {
+      "id": 3,
+      "actor": "CARGOCOMPLY",
+      "evidence_refs": [],
+      "outcome": "COMPLETED",
+      "prev_hash": "d9a528bef7196f0591f47fa6000d86bafd65b634b13e829a16bb024619424ad4",
+      "entry_hash": "29bf060debcf1c25bdce9880ad1268b617426fadc9ff92d7783a8a77a75fcd17",
+      "decision_payload": {
+        "step": 3,
+        "note": "CARGOCOMPLY step 3"
+      }
+    },
+    {
+      "id": 4,
+      "actor": "ORCHESTRATOR",
+      "evidence_refs": [],
+      "outcome": "CLOSED_CLEAN",
+      "prev_hash": "29bf060debcf1c25bdce9880ad1268b617426fadc9ff92d7783a8a77a75fcd17",
+      "entry_hash": "6ed706943d7c2d09c24703ae5b784d6ad72e8c3ab3981b17eb9d857827d1189f",
+      "decision_payload": {
+        "step": 4,
+        "note": "ORCHESTRATOR step 4"
+      }
+    }
+  ],
+  "clean_verify": {
+    "ok": true,
+    "error": null
+  },
+  "tamper_target_id": 3,
+  "tamper_verify": {
+    "ok": false,
+    "error": "broken at id=3"
+  }
+}

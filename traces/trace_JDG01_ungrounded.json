@@ -1,0 +1,11 @@
+{
+  "case_id": "JDG-01",
+  "scenario": "LLM-as-judge flags ungrounded compliance statement",
+  "expected": "ungrounded_compliance=True; mandatory_human_review=True",
+  "judge": {
+    "mandatory_human_review": true,
+    "payload": {
+      "ungrounded_compliance": true
+    }
+  }
+}
