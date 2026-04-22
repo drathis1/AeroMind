@@ -3,14 +3,15 @@
 This folder is the Canvas-friendly bundle for Phase 3. Treat it as the
 "single place" a reviewer opens first.
 
-## Contents (populate at submission time)
+## Contents
 
-- `submission_packet.pdf` — the single PDF that points to everything else.
-  Template at [`../../docs/final_report.md`](../../docs/final_report.md).
+- `submission_packet.pdf` — the single PDF that points to everything else
+  (**to assemble at submission time**; source: [`../../docs/final_report.md`](../../docs/final_report.md)).
 - `reflections/` — one markdown file per team member (individual
-  contribution reflection, required).
+  contribution reflection, required). **All four present:**
+  `dhiksha.md`, `sai.md`, `smridhi.md`, `tina.md`.
 - `ai_transcript_excerpts.md` — cleaned Cursor / Claude prompt + response
-  excerpts referenced by `../../AI_USAGE.md`.
+  excerpts referenced by [`../../AI_USAGE.md`](../../AI_USAGE.md).
 - `submission_checklist.md` — the checklist from the course packet with
   boxes ticked.
 

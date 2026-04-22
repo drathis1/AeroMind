@@ -1,0 +1,15 @@
+{
+  "request": {
+    "endpoint": "ToolRegistry.call (allowlist enforcement demo, no DB)",
+    "agent_id": "CARGOCOMPLY",
+    "tool_name": "booking_write",
+    "args": {
+      "amendment": "example"
+    }
+  },
+  "response": {
+    "allowed": false,
+    "reason": "TOOL_NOT_IN_ALLOWLIST"
+  },
+  "note": "Violation row is written to governance_violations via session.execute (mocked here)."
+}

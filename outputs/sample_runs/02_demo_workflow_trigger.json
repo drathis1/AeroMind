@@ -1,0 +1,90 @@
+{
+    "ok": true,
+    "order": {
+        "id": "ORD-449836",
+        "route": "MIA \u2192 LHR",
+        "origin": "MIA",
+        "destination": "LHR",
+        "shipper": "Wide World Exports",
+        "manufacturer": "Adventure Works Mfg",
+        "supplier": "Tailspin Cargo",
+        "status": "RUNNING",
+        "current_agent": "CargoComply",
+        "current_stage": "compliance",
+        "shared_state": {
+            "current_stage": "compliance",
+            "active_agent": "CARGOCOMPLY",
+            "completed_agents": [],
+            "escalation_flag": false,
+            "escalation_reason": null,
+            "orchestrator_notes": [
+                "[2026-04-22T04:56:57.100917+00:00] Order event ingested; queued CargoComply (compliance first)."
+            ]
+        },
+        "timeline": [
+            {
+                "id": "created",
+                "label": "Order Created",
+                "agent": null,
+                "lane": "Shipper",
+                "status": "done"
+            },
+            {
+                "id": "comply",
+                "label": "Compliance Check",
+                "agent": "CargoComply",
+                "lane": "CargoComply",
+                "status": "running"
+            },
+            {
+                "id": "route",
+                "label": "Route Planning",
+                "agent": "ClearPath",
+                "lane": "ClearPath",
+                "status": "pending"
+            },
+            {
+                "id": "load",
+                "label": "Load Optimization",
+                "agent": "LoadIQ",
+                "lane": "LoadIQ",
+                "status": "pending"
+            },
+            {
+                "id": "transit",
+                "label": "Shipment Execution",
+                "agent": null,
+                "lane": "Supplier",
+                "status": "pending"
+            },
+            {
+                "id": "done",
+                "label": "Delivered",
+                "agent": null,
+                "lane": "Manufacturer",
+                "status": "pending"
+            }
+        ],
+        "agent_logs": {
+            "CARGOCOMPLY": [],
+            "CLEARPATH": [],
+            "LOADIQ": []
+        },
+        "escalation": {
+            "active": false,
+            "source_agent": null,
+            "message": null
+        },
+        "payload_preview": {
+            "international": true,
+            "weight_kg": 4200.0,
+            "has_docs": true,
+            "route_stays_in_country": true,
+            "delay_hours": 4.0,
+            "hazmat_on_board": false,
+            "demo_escalation": null
+        },
+        "agent_results": {},
+        "workflow_id": "W-16103bcb"
+    }
+}

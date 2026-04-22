@@ -241,23 +241,25 @@ pytest tests/ -v --integration
 pytest tests/ --cov=aeromind --cov-report=term-missing
 ```
 
-See `evaluation_plan.md` for the full 35-scenario test matrix and execution phases.
+See [`Evaluation plan.md`](./Evaluation%20plan.md) for the full 35-scenario test matrix and execution phases.
 
 ---
 
 ## Interaction Traces
 
-Real interaction traces captured from running workflows are in the `traces/` folder:
+Real interaction traces captured from running workflows are in the `traces/` folder (regenerate with `eval/capture_traces.py`):
 
 | File | Scenario | Status |
 |---|---|---|
 | `traces/trace_E2E01_new_booking.json` | Happy-path NEW_BOOKING, 3 items, non-DG | CLOSED_CLEAN |
 | `traces/trace_E2E02_weather_disruption.json` | WEATHER_ALERT → two-phase handoff | CLOSED_CLEAN |
-| `traces/trace_GOV01_dg_lock.json` | DG lock blocks autonomous commit | DG_LOCK_BREACH blocked |
+| `traces/trace_GOV01_dg_lock.json` | DG lock blocks autonomous commit | `dg_lock_blocked_commit` (contained) |
 | `traces/trace_GOV02_blast_radius.json` | Blast-radius cap halts at cap+1 | BLAST_RADIUS_CAP |
 | `traces/trace_INJ01_prompt_injection.json` | Injection in NOTAM text → redacted | REDACTED_INJECTION |
-| `traces/trace_COMP01_compound.json` | DG + weather + high-value + sanctions | 4 controls fired |
-| `traces/pytest_output.txt` | Full pytest run output | 28/35 PASS |
+| `traces/trace_JDG01_ungrounded.json` | Judge flags ungrounded compliance statement | `mandatory_human_review=true` |
+| `traces/trace_ESC01_human_gate.json` | LoadIQ `escalation_required=true` | AWAITING_HUMAN |
+| `traces/trace_AUD02_hash_chain.json` | Audit hash chain verify + tamper detection | verify ok / `broken at id=3` |
+| `eval/pytest_phase3_run.txt` | Full pytest run output | 8/8 PASS |
 
 ---
 
@@ -282,9 +284,10 @@ Eight completed scenarios (including two failure-containment cases) sampled from
 | [`eval/pytest_phase3_run.txt`](./eval/pytest_phase3_run.txt) | Raw `pytest -v` output — 8/8 passed |
 | [`eval/capture_traces.py`](./eval/capture_traces.py) | Deterministic evidence-capture script (writes to `traces/`) |
 | [`eval/render_screenshots.py`](./eval/render_screenshots.py) | Screenshot renderer (writes to `docs/screenshots/`) |
-| [`AI_USAGE.md`](./AI_USAGE.md) | AI tool disclosure |
+| [`AI_USAGE.md`](./AI_USAGE.md) | AI tool disclosure (Claude + Cursor usage, what we validated) |
+| [`outputs/sample_runs/`](./outputs/sample_runs) | Eight captured live responses — health, demo pipeline, orchestrator, allowlist denial |
 | [`media/demo_video_link.txt`](./media/demo_video_link.txt) | 5-minute demo video link (record + paste URL) |
-| [`phase_submissions/phase3/`](./phase_submissions/phase3) | Canvas-friendly submission bundle (checklist, reflections folder) |
+| [`phase_submissions/phase3/`](./phase_submissions/phase3) | Canvas submission bundle — checklist, four individual reflections, AI transcript excerpts |
 
 Reproduce end to end:
 
@@ -304,7 +307,7 @@ python3 docs/render_architecture.py
 These are honest constraints of the current implementation, not oversights:
 
 **1. Mock APIs in Phases 1–2.**  
-All external integrations (weather, NOTAM, airline booking, CBP) use deterministic mock responses. The system is designed for real API integration but enterprise agreements are required for production access. Mock behavior is documented in `aeromind/mocks/`.
+All external integrations (weather, NOTAM, airline booking, CBP) use deterministic mock responses inside the default agent runners in `aeromind/agents/impl.py` (the `else` branches when `GeminiClient.enabled()` is false). The system is designed for real API integration but enterprise agreements are required for production access.
 
 **2. LLM judge faithfulness is probabilistic.**  
 The Gemini-based judge targets ≥90% flag detection on synthetic anomalies, but no LLM judge achieves 100% recall. An ungrounded compliance statement could theoretically pass the heuristic check if phrased unusually. Mitigation: heuristic pre-filters (`worker.py:22–53`) run before the LLM call and catch the most common failure modes deterministically.
@@ -333,5 +336,5 @@ If the Gemini API returns a malformed JSON response mid-stream, the judge worker
 | **LoadIQ agent** | Sai | `agents/loadiq.py` (load optimization logic, ULD assignment, weight/balance constraints), `registry.py` (tool allowlist), FastAPI app (`api/main.py`), Docker Compose setup |
 | **ClearPath agent** | Smridhi | `agents/clearpath.py` (disruption detection, route ranking, reroute handoff), `filter.py` (prompt injection sanitizer), interaction traces, README |
 | **CargoComply agent** | Tina | `agents/cargocomply.py` (RAG compliance sweep, document generation), `worker.py` (LLM-as-judge), `chain.py` (audit hash chain), `db/sql/` (schema & governance views) |
-| **Evaluation & testing** | Dhiksha, Sai | `evaluation_plan.md` (35 scenarios, 6 dimensions, 4-phase execution plan), `tests/` (unit + integration test suite) |
+| **Evaluation & testing** | Dhiksha, Sai | `Evaluation plan.md` (35 scenarios, 6 dimensions, 4-phase execution plan), `tests/` (unit + integration test suite), `eval/capture_traces.py`, `eval/render_screenshots.py` |
 | **Documentation** | Smridhi, Tina | README, architecture diagram, Phase 2 docx |

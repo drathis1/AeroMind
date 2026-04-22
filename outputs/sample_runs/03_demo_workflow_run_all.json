@@ -1,0 +1,174 @@
+{
+    "ok": true,
+    "order": {
+        "id": "ORD-449836",
+        "route": "MIA \u2192 LHR",
+        "origin": "MIA",
+        "destination": "LHR",
+        "shipper": "Wide World Exports",
+        "manufacturer": "Adventure Works Mfg",
+        "supplier": "Tailspin Cargo",
+        "status": "IN_TRANSIT",
+        "current_agent": "Supplier",
+        "current_stage": "in_transit",
+        "shared_state": {
+            "current_stage": "in_transit",
+            "active_agent": null,
+            "completed_agents": [
+                "CARGOCOMPLY",
+                "CLEARPATH",
+                "LOADIQ"
+            ],
+            "escalation_flag": false,
+            "escalation_reason": null,
+            "orchestrator_notes": [
+                "[2026-04-22T04:56:57.100917+00:00] Order event ingested; queued CargoComply (compliance first).",
+                "[2026-04-22T04:56:57.137280+00:00] Dispatching CARGOCOMPLY for workflow W-16103bcb (agents do not inter-communicate).",
+                "[2026-04-22T04:56:57.137390+00:00] Dispatching CLEARPATH for workflow W-16103bcb (agents do not inter-communicate).",
+                "[2026-04-22T04:56:57.137500+00:00] Dispatching LOADIQ for workflow W-16103bcb (agents do not inter-communicate).",
+                "[2026-04-22T04:56:57.137546+00:00] All agents completed; releasing to supplier execution lane."
+            ]
+        },
+        "timeline": [
+            {
+                "id": "created",
+                "label": "Order Created",
+                "agent": null,
+                "lane": "Shipper",
+                "status": "done"
+            },
+            {
+                "id": "comply",
+                "label": "Compliance Check",
+                "agent": "CargoComply",
+                "lane": "CargoComply",
+                "status": "done"
+            },
+            {
+                "id": "route",
+                "label": "Route Planning",
+                "agent": "ClearPath",
+                "lane": "ClearPath",
+                "status": "done"
+            },
+            {
+                "id": "load",
+                "label": "Load Optimization",
+                "agent": "LoadIQ",
+                "lane": "LoadIQ",
+                "status": "done"
+            },
+            {
+                "id": "transit",
+                "label": "Shipment Execution",
+                "agent": null,
+                "lane": "Supplier",
+                "status": "running"
+            },
+            {
+                "id": "done",
+                "label": "Delivered",
+                "agent": null,
+                "lane": "Manufacturer",
+                "status": "pending"
+            }
+        ],
+        "agent_logs": {
+            "CARGOCOMPLY": [
+                "[2026-04-22T04:56:57.137379+00:00] Compliance status=pass.",
+                "[2026-04-22T04:56:57.137382+00:00] Checked customs requirements"
+            ],
+            "CLEARPATH": [
+                "[2026-04-22T04:56:57.137490+00:00] Ranked 3 route option(s); selected=cp-demo-1.",
+                "[2026-04-22T04:56:57.137492+00:00] Generated 3 route options",
+                "[2026-04-22T04:56:57.137493+00:00] Selected optimal route"
+            ],
+            "LOADIQ": [
+                "[2026-04-22T04:56:57.137541+00:00] Placements=1; weight_ok=True.",
+                "[2026-04-22T04:56:57.137542+00:00] Optimized cargo placement"
+            ]
+        },
+        "escalation": {
+            "active": false,
+            "source_agent": null,
+            "message": null
+        },
+        "payload_preview": {
+            "international": true,
+            "weight_kg": 4200.0,
+            "has_docs": true,
+            "route_stays_in_country": true,
+            "delay_hours": 4.0,
+            "hazmat_on_board": false,
+            "demo_escalation": null
+        },
+        "agent_results": {
+            "CARGOCOMPLY": {
+                "status": "pass",
+                "statements": [
+                    {
+                        "text": "Documentation and DG classification acceptable for planned lane.",
+                        "source_chunk_id": "DEMO_REG_OK"
+                    }
+                ],
+                "missing_docs": [],
+                "dg_accepted": true,
+                "handoff_route_key": null,
+                "escalation_required": false,
+                "escalation_reason": null
+            },
+            "CLEARPATH": {
+                "disruption_summary": "Corridor clear; optimal domestic route selected.",
+                "ranked_options": [
+                    {
+                        "route_id": "cp-demo-1",
+                        "description": "MIA \u2192 LHR (primary)",
+                        "transit_delta_hours": 4.0,
+                        "cost_delta_usd": 0.0,
+                        "reliability_score": 0.95
+                    },
+                    {
+                        "route_id": "cp-demo-2",
+                        "description": "MIA \u2192 LHR (alt)",
+                        "transit_delta_hours": 5.0,
+                        "cost_delta_usd": 400.0,
+                        "reliability_score": 0.88
+                    },
+                    {
+                        "route_id": "cp-demo-3",
+                        "description": "MIA \u2192 LHR (backup)",
+                        "transit_delta_hours": 6.5,
+                        "cost_delta_usd": 900.0,
+                        "reliability_score": 0.8
+                    }
+                ],
+                "selected_option_id": "cp-demo-1",
+                "booking_commit_requested": true,
+                "shipper_notified": false,
+                "handoff": {
+                    "reroute_complete": true,
+                    "new_country": false
+                },
+                "escalation_required": false,
+                "escalation_reason": null,
+                "ground_truth_ranked_for_judge": []
+            },
+            "LOADIQ": {
+                "placements": [
+                    {
+                        "cargo_item_id": "ULD-1",
+                        "uld_position": "MAIN-2A"
+                    }
+                ],
+                "weight_balance_ok": true,
+                "hazmat_conflicts": [],
+                "crew_instructions": "Load per optimized plan; no hazmat conflicts.",
+                "ground_crew_notify_requested": true,
+                "escalation_required": false,
+                "escalation_reason": null,
+                "manifest_item_ids_in": []
+            }
+        },
+        "workflow_id": "W-16103bcb"
+    }
+}

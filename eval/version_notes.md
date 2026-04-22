@@ -6,8 +6,8 @@
 | Document date | 2026-04-21 |
 | Git branch | main |
 | Git commit | 3922b685e28444ad9f019db446dfd5573b20947e |
-| Python | 3.13.7 (project requires 3.11+) |
-| Test runner | pytest 9.0.2 with `pytest-asyncio` 1.3.0 (installed via `pip install -e ".[dev]"`) |
+| Python | 3.13.5 (project requires 3.11+) |
+| Test runner | pytest 8.3.4 with `pytest-asyncio` 1.3.0 (installed via `pip install -e ".[dev]"`) |
 | Test result | **8/8 passed** — see `eval/pytest_phase3_run.txt` |
 
 ## What was evaluated for Phase 3 packet

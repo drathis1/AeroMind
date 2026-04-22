@@ -1,0 +1,20 @@
+[
+    {
+        "id": "ORD-449836",
+        "route": "MIA \u2192 LHR",
+        "status": "READY",
+        "current_agent": null
+    },
+    {
+        "id": "ORD-B5C36A",
+        "route": "ORD \u2192 SEA",
+        "status": "READY",
+        "current_agent": null
+    },
+    {
+        "id": "ORD-E4C5C6",
+        "route": "JFK \u2192 LAX",
+        "status": "READY",
+        "current_agent": null
+    }
+]
