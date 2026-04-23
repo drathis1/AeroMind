@@ -2,12 +2,12 @@ arch_a,arch_b,dimension,cohens_d,mean_a,mean_b,diff
 A0_full,A1_no_governance,accuracy,2.016,1.0,0.4048,0.5952
 A0_full,A1_no_governance,security,1.629,1.0,0.4286,0.5714
 A0_full,A1_no_governance,cost_tokens,0.111,1160.7143,1129.4286,31.2857
-A0_full,A1_no_governance,latency_ms,-0.037,1.0208,1.028,-0.0072
+A0_full,A1_no_governance,latency_ms,-0.047,0.9961,1.0044,-0.0083
 A0_full,A2_flat_sequential,accuracy,2.016,1.0,0.4048,0.5952
 A0_full,A2_flat_sequential,security,1.629,1.0,0.4286,0.5714
 A0_full,A2_flat_sequential,cost_tokens,-0.684,1160.7143,1321.0,-160.2857
-A0_full,A2_flat_sequential,latency_ms,6.426,1.0208,0.0089,1.0119
+A0_full,A2_flat_sequential,latency_ms,7.242,0.9961,0.0087,0.9874
 A1_no_governance,A2_flat_sequential,accuracy,0.0,0.4048,0.4048,0.0
 A1_no_governance,A2_flat_sequential,security,0.0,0.4286,0.4286,0.0
 A1_no_governance,A2_flat_sequential,cost_tokens,-1.222,1129.4286,1321.0,-191.5714
-A1_no_governance,A2_flat_sequential,latency_ms,8.841,1.028,0.0089,1.0191
+A1_no_governance,A2_flat_sequential,latency_ms,8.855,1.0044,0.0087,0.9957

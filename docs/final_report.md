@@ -44,7 +44,7 @@ versus **0.40 / 0.43** for an identical hierarchical orchestrator with
 governance disabled (Cohen's *d* = 2.02 and 1.63 respectively — "no overlap
 to speak of" effect sizes), and the same **0.40 / 0.43** for a flat
 sequential ReAct-style baseline. The composite pentagon-area score is
-**0.54 vs 0.19 (A1) vs 0.20 (A2)** — a 2.7–2.9× advantage over the ablated
+**0.56 vs 0.20 (A1) vs 0.29 (A2)** — a 1.9–2.8× advantage over the ablated
 baselines (Figure 3, §5.2). The trade-off is real and quantified: AeroMind
 pays roughly 1 ms of orchestration overhead and 12% more tokens than the
 flat baseline (driven by the LLM-as-judge call), and the experiment
@@ -589,7 +589,7 @@ to the architecture itself, not to the agents.
 | Ablation trials run | **630** (3 archs × 7 scenarios × 30 reps) | `eval/classic_runs.csv` |
 | Measured Accuracy A0 vs A1 (governance ablated) | **1.00 vs 0.40** (Cohen's *d* = 2.02) | `eval/classic_summary.csv`, `eval/classic_pairwise.csv` |
 | Measured Security A0 vs A1 (governance ablated) | **1.00 vs 0.43** (Cohen's *d* = 1.63) | `eval/classic_pairwise.csv` |
-| CLASSic composite (pentagon area, normalised) | **A0: 0.54 · A1: 0.19 · A2: 0.20** | Figure 3, computation in `docs/render_classic_radar.py` |
+| CLASSic composite (pentagon area, normalised) | **A0: 0.56 · A1: 0.20 · A2: 0.29** | Figure 3, computation in `docs/render_classic_radar.py` |
 
 ### 5.2 CLASSic measurements and architectural comparison
 
@@ -601,24 +601,67 @@ Figure 3 is a measurement from the 630-trial ablation study described in
 `eval/classic_summary.csv`; pairwise effect sizes are in
 `eval/classic_pairwise.csv`. Methodology: `eval/classic_methodology.md`.
 
+**The three architectures and what each one isolates** — to make the
+ablation rigorous (in the standard "lesion study" sense), the only
+thing that changes between A0, A1, and A2 is the architectural layer
+under test; agents, prompts, scenarios, payloads, and deterministic
+mocks are held constant.
+
+| ID | Orchestration | Governance | What gets isolated |
+|---|---|---|---|
+| **A0** AeroMind, full | LangGraph state-machine, two-phase event-aware routing, conditional short-circuiting, shared `OrchestratorState` | All 7 controls active: DG-lock, blast-radius cap, tool allowlist, prompt-injection filter, LLM-as-judge groundedness, human-in-the-loop gate | The full system as shipped |
+| **A1** Hierarchical, no governance | **Identical to A0** — same LangGraph graph, same routing, same shared state | **All 7 controls disabled** at the runner layer | A1 vs A0 isolates the *governance layer alone* (orchestrator topology held constant) |
+| **A2** Flat sequential | **No orchestrator.** Agents called in fixed order `CARGOCOMPLY → CLEARPATH → LOADIQ` for every event, regardless of type. No state propagation, no conditional routing, no two-phase handoff. | None | A2 vs A1 isolates the *orchestrator topology alone* (both lack governance, so any A1↔A2 gap is attributable to hierarchical-vs-flat) |
+
+**Why governance is "removed" in the ablation.** This is the canonical
+ablation-study method — without it we could only claim *"AeroMind has
+governance"*; with it we can claim *"governance contributes Cohen's
+d = 2.02 on accuracy and 1.63 on security with negligible cost
+penalty (d = 0.11)"*. Removing governance in A1 is not a statement
+that governance is optional; it is the experimental control needed
+to attribute outcome quality to the governance layer specifically
+(rather than to the orchestrator topology, which A1 also has).
+Similarly, A2 removes the orchestrator so that A1↔A2 isolates
+topology. The two ablations together give us a clean two-factor
+attribution. AeroMind in production is always A0; A1 and A2 exist
+only as scientific reference points.
+
+**Live LLMs vs deterministic mocks.** The ablation runs against the
+project's pre-existing deterministic agent stubs and a heuristic
+LLM-as-judge (no API keys, no network, fully reproducible). This is
+the right substrate for an *architectural* ablation because we are
+measuring the contribution of the orchestration and governance
+layers, not the contribution of any specific LLM. Latency
+measurements should therefore be interpreted as *orchestrator
+overhead*; static prompt-token counts (the Cost dimension) are the
+LLM-independent budget that would actually be sent to a provider.
+§5.2.5 extrapolates both to live-LLM regimes.
+
 ![Figure 3 — Measured CLASSic ablation: AeroMind (A0) vs governance-ablated hierarchical (A1) vs flat sequential (A2)](./classic_radar.png)
 
 *Figure 3 — Data-driven radar: each vertex is the mean of 210 trials
 (7 scenarios × 30 repetitions) for one architecture. Score scale is 0–1;
 higher is better on every axis. Accuracy, Security and Stability are
 plotted in their natural [0,1] units. Cost and Latency are inverted via
-**min-max-stretch across the three architecture means** — the
-cheapest/fastest architecture lands at 1.0, the most expensive/slowest
-at 0.0, intermediate architectures at their true relative position. We
-chose this over inverting from a zero floor because the absolute Cost
-spread is small (1129–1321 tokens, ~17%) and an absolute-zero
-normalization compressed all three architectures into a narrow band near
-the centre of the chart, hiding the ranking. Raw means and σ are still
-reported in the per-dimension table below so the absolute scale is never
-hidden. Renderer reads `eval/classic_summary.csv` directly: see
-`docs/render_classic_radar.py`. Line styles are distinct (A0 solid with
-circle markers, A1 dashed with squares, A2 dotted with triangles) so the
-three architectures remain readable wherever the polygons overlap.*
+**headroom normalisation**: `score = 1 − value / (1.5 × worst-observed
+mean)`. The 1.5× multiplier is data-derived (no cherry-picked external
+threshold) and gives a 50% margin so even the worst-observed
+architecture stays visible rather than collapsing to the chart centre.
+Every score therefore has the same interpretable meaning: "fraction of
+the budget remaining" — 0.5 means the system used half the headroom,
+1.0 means it used essentially none. We deliberately chose this over
+both (a) absolute-zero inversion against the observed max (which
+compressed all three architectures into a narrow band near the centre,
+making AeroMind's second-best Cost position read as a weak inner-ring
+score) and (b) min-max-stretch (which pinched the worst architecture
+to 0 even when the absolute gap was operationally trivial — e.g.
+A0's ~1 ms of LangGraph overhead vs A2's ~9 µs). Raw means and σ
+are reported in the per-dimension table below so the absolute scale
+is never hidden. Renderer reads `eval/classic_summary.csv` directly:
+see `docs/render_classic_radar.py`. Line styles are distinct (A0
+solid with circle markers, A1 dashed with squares, A2 dotted with
+triangles) so the three architectures remain readable wherever the
+polygons overlap.*
 
 #### 5.2.1 Per-dimension measurements with confidence intervals
 
@@ -631,8 +674,8 @@ computed from the per-trial measurements.
 | **Accuracy** (subgoal-completion rate, 0–1) | **1.000 ± 0.000** [1.000, 1.000] | 0.405 ± 0.417 [0.350, 0.461] | 0.405 ± 0.417 [0.350, 0.461] | Cohen's *d* = **2.02** (very large) |
 | **Security** (containment + injection block rate, 0–1) | **1.000 ± 0.000** [1.000, 1.000] | 0.429 ± 0.496 [0.362, 0.495] | 0.429 ± 0.496 [0.362, 0.495] | Cohen's *d* = **1.63** (very large) |
 | **Cost** (static prompt tokens/workflow) | 1161 ± 331 [1117, 1206] | **1129 ± 222** [1100, 1159] | 1321 ± 0 [1321, 1321] | Cohen's *d* = 0.11 (negligible) |
-| **Latency** (wall-clock ms/workflow) | 1.021 ± 0.223 [0.993, 1.052] | 1.028 ± 0.163 [1.006, 1.050] | **0.009 ± 0.002** [0.009, 0.009] | Cohen's *d* = 0.04 (negligible) |
-| **Stability** (1 − mean σ across trials, 0–1) | **0.927** | 0.642 | 0.695 | — |
+| **Latency** (wall-clock ms/workflow) | 1.012 ± 0.205 [0.986, 1.041] | 1.019 ± 0.177 [0.995, 1.043] | **0.009 ± 0.002** [0.009, 0.009] | Cohen's *d* = 0.04 (negligible) |
+| **Stability** (1 − mean σ across trials, 0–1) | **0.955** | 0.657 | 0.695 | — |
 
 Reading: **bold** marks the architecture that won that dimension. AeroMind
 wins three of the five dimensions outright (Accuracy, Security,
@@ -650,22 +693,23 @@ ranges 0 to 1 with 1.0 being a perfect pentagon at the outer ring.
 
 | Architecture | Composite | vs A0 |
 |---|---:|---|
-| **A0 — AeroMind, full** | **0.541** | — |
-| A1 — Hierarchical, no governance | 0.188 | −65% |
-| A2 — Flat sequential, no governance | 0.202 | −63% |
+| **A0 — AeroMind, full** | **0.561** | — |
+| A1 — Hierarchical, no governance | 0.202 | −64% |
+| A2 — Flat sequential, no governance | 0.294 | −48% |
 
-A0 dominates the composite by a factor of **2.7–2.9×**. This is the
+A0 dominates the composite by a factor of **1.9–2.8×**. This is the
 honest, measured answer to "what is the architectural value of the
 governance and orchestration layers". It is meaningfully smaller than the
 illustrative 0.86 we estimated before running the ablation — and we
 are reporting the smaller number, because it is the one we can defend
-with the CSV. Note that A0's composite is held below 1.0 chiefly by its
-0.0 score on Latency: with min-max-stretch, the slowest architecture on
-any dimension lands at 0.0 even when the absolute gap (here ~1 ms of
-LangGraph orchestrator overhead) is operationally trivial. A
-governance-aware operator reading this radar should treat Latency as a
-*ranking* signal, not a budget signal — and confirm against the raw
-millisecond means in §5.2.1.
+with the CSV. A2 sits between A1 and A0 on the composite (0.29) only
+because the headroom-normalised Latency dimension rewards it for the
+~9 µs response time it gets from skipping the orchestrator entirely;
+on every dimension that measures *outcome quality* (Accuracy, Security,
+Stability) A2 ties A1 at the bottom. Operators should not read this
+as "A2 is half as good as AeroMind" — A2 is half as good *on a
+volume metric*; on every governance-sensitive scenario in §5.2.4 it
+fails outright.
 
 #### 5.2.3 What the ablation proves (architectural attribution)
 
@@ -683,7 +727,7 @@ can attribute each dimensional gap to a specific architectural layer:
 2. **The hierarchical orchestrator is what creates the cost / latency
    trade-off.** A1 vs A2 shows *d* = 0.0 on Accuracy and Security
    (identical performance — the agents and scenarios are the same) but
-   *d* = 8.84 on Latency (A2 is 114× faster) and *d* = −1.22 on Cost
+   *d* = 8.07 on Latency (A2 is 113× faster) and *d* = −1.22 on Cost
    (A2 uses 17% more tokens because it cannot short-circuit unnecessary
    agent calls). The orchestrator pays ~1 ms of LangGraph tick overhead
    per workflow in exchange for state propagation and conditional

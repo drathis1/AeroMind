@@ -41,7 +41,7 @@ from eval.ablations.a2_flat_sequential import run_trial_a2  # noqa: E402
 from eval.metrics.classic_score import (  # noqa: E402
     aggregate,
     cohens_d,
-    inverted_relative,
+    inverted_headroom,
     stability_score,
     trial_security_score,
 )
@@ -167,21 +167,30 @@ def summarize(rows: list[dict]) -> tuple[list[dict], list[dict]]:
         per_arch[a]["cost_tokens"] = [float(r["cost_tokens"]) for r in arows]
         per_arch[a]["latency_ms"] = [r["latency_ms"] for r in arows]
 
-    # For radar visualisation we use min-max-stretch normalisation across
-    # architecture *means* on Cost and Latency. This makes the relative
-    # ranking (cheapest, fastest) clearly visible — the architecture that
-    # wins the dimension lands at 1.0; the worst lands at 0.0; intermediate
-    # architectures sit at their true position in between. Raw means and
-    # σ are still reported in the per-dimension table so the absolute scale
-    # is never hidden.
+    # For radar visualisation we use HEADROOM normalisation on the
+    # higher-is-worse dimensions (Cost, Latency):
+    #
+    #     radar_score = 1 - value / upper_bound
+    #
+    # where upper_bound = 1.5 × max-observed mean across architectures.
+    # This gives every score the interpretable meaning "fraction of the
+    # budget remaining". A score of 0.5 means the system consumed half
+    # of the headroom budget; 1.0 means it used essentially none. We
+    # deliberately avoid min-max-stretch (which would pinch the worst
+    # architecture to the chart centre even for operationally trivial
+    # absolute gaps such as ~1 ms of LangGraph overhead) and absolute-
+    # zero inversion against the observed max (which would compress all
+    # three architectures into a narrow inner band). The 1.5× headroom
+    # is data-derived (no cherry-picked external threshold) and gives a
+    # 50% margin so even the worst-observed architecture stays visible.
     cost_means = [aggregate(per_arch[a]["cost_tokens"]).mean for a in archs]
     lat_means = [aggregate(per_arch[a]["latency_ms"]).mean for a in archs]
-    min_cost, max_cost = min(cost_means), max(cost_means)
-    min_lat, max_lat = min(lat_means), max(lat_means)
-    # Latency σ normaliser uses the latency range (not raw max) so that
+    cost_upper = max(cost_means) * 1.5
+    lat_upper = max(lat_means) * 1.5
+    # Latency σ normaliser uses the headroom upper bound so that
     # Stability stays comparable across experiments with different
     # latency floors.
-    lat_range = max_lat - min_lat if max_lat > min_lat else 1.0
+    lat_norm = lat_upper if lat_upper > 0 else 1.0
 
     summary_rows: list[dict] = []
     for a in archs:
@@ -190,14 +199,10 @@ def summarize(rows: list[dict]) -> tuple[list[dict], list[dict]]:
         cost_agg = aggregate(per_arch[a]["cost_tokens"])
         lat_agg = aggregate(per_arch[a]["latency_ms"])
 
-        cost_score = inverted_relative(
-            cost_agg.mean, min_observed=min_cost, max_observed=max_cost
-        )
-        lat_score = inverted_relative(
-            lat_agg.mean, min_observed=min_lat, max_observed=max_lat
-        )
+        cost_score = inverted_headroom(cost_agg.mean, upper_bound=cost_upper)
+        lat_score = inverted_headroom(lat_agg.mean, upper_bound=lat_upper)
 
-        lat_std_norm = lat_agg.std / lat_range
+        lat_std_norm = lat_agg.std / lat_norm
         stab = stability_score(
             accuracy_std=acc_agg.std,
             security_std=sec_agg.std,

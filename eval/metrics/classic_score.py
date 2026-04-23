@@ -169,6 +169,12 @@ def inverted_relative(
     inside that band. Use this when the *ranking* and *relative gap*
     matter for the visualisation; raw values are still reported in the
     per-dimension table so the absolute scale isn't hidden.
+
+    NOTE: this normalisation is intentionally NOT used in the headline
+    radar chart because it visually pinches the worst architecture to
+    the chart centre even when the absolute gap is operationally
+    trivial (e.g. ~1 ms of LangGraph overhead). It is retained here
+    for completeness and for any future ranking-only diagnostic plots.
     """
     if max_observed <= min_observed:
         return 1.0
@@ -176,6 +182,22 @@ def inverted_relative(
         0.0,
         min(1.0, 1.0 - ((value - min_observed) / (max_observed - min_observed))),
     )
+
+
+def inverted_headroom(value: float, *, upper_bound: float) -> float:
+    """Headroom inversion for radar visualisation.
+
+    ``score = 1 - value / upper_bound``. The score is "fraction of
+    the budget remaining": 1.0 means the system used none of the
+    budget; 0.0 means it consumed the entire budget. The upper_bound
+    should be a meaningful reference (e.g. 1.5x the worst observed
+    mean) so that real architectures land in the interpretable middle
+    of the [0, 1] range and small absolute differences look small —
+    never pinched to the chart centre by relative scaling.
+    """
+    if upper_bound <= 0:
+        return 1.0
+    return max(0.0, min(1.0, 1.0 - (value / upper_bound)))
 
 
 # ---------------------------------------------------------------------------

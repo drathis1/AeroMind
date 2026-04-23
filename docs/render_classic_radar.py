@@ -97,9 +97,9 @@ def plot_radar(scores: dict[str, dict[str, float]], out_path: Path) -> None:
         0.5,
         0.945,
         "Measured ablation: 7 scenarios × 3 architectures × 30 reps = 630 trials  ·  "
-        "Cost & Latency use min-max-stretch (winner=1.0, loser=0.0)",
+        "Cost & Latency: 1 − value / (1.5 × worst-observed mean) — higher = more budget headroom",
         ha="center",
-        fontsize=10,
+        fontsize=9,
         color="#444",
     )
 

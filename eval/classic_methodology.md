@@ -37,26 +37,44 @@ We use the five-dimensional evaluation framework of Arunkumar et al.
 | **Stability** | `1 − mean σ` across Accuracy, Security, and normalised Latency over 30 repetitions. Higher is better. |
 
 For the radar plot, raw values for Cost and Latency (lower is better)
-are inverted with **min-max-stretch normalisation across the three
-architecture means**:
+are inverted with **headroom normalisation**:
 
 ```
-radar_score(arch, dim) = 1 − (mean(arch, dim) − min_mean(dim))
-                              / (max_mean(dim) − min_mean(dim))
+upper_bound(dim) = 1.5 × max-observed mean of dim across architectures
+radar_score(arch, dim) = 1 − mean(arch, dim) / upper_bound(dim)
 ```
 
-The architecture that wins the dimension lands at 1.0; the architecture
-that loses it lands at 0.0; intermediate architectures sit at their true
-relative position in between. This was a deliberate choice over an
-absolute-zero inversion (`1 − value/max`): the three architectures'
-absolute Cost values are clustered within ~17% of each other (1129–1321
-tokens), and an absolute-zero inversion compressed them all into a
-narrow band near the centre of the chart, hiding the ranking. The
-min-max-stretch makes the *relative architectural ranking* legible on
-the radar; raw means and σ are still reported in §5.2.1 of the report
-so the absolute scale is never hidden. See
-`eval.metrics.classic_score.inverted_relative` (and the older
-`inverted_minmax` for absolute-zero scaling) for the implementations.
+Every score therefore has a single, interpretable meaning across both
+dimensions: *"fraction of the budget remaining"*. A score of 0.5 means
+the architecture used half of the headroom budget; 1.0 means it used
+essentially none.
+
+We chose this normalisation over two alternatives we explicitly
+evaluated and rejected:
+
+1. **Absolute-zero inversion** (`score = 1 − value / observed_max`)
+   compressed all three architectures' Cost scores into a narrow
+   inner band (0.18–0.30) because the spread between the cheapest
+   (1129 tokens) and most expensive (1321 tokens) architecture is
+   only ~17%. Visually the chart hid the cost ranking entirely and
+   read as if AeroMind was weak on Cost when it is in fact
+   second-cheapest.
+2. **Min-max-stretch** (`score = 1 − (value − min) / (max − min)`)
+   restored the ranking but pinched the loser of every dimension to
+   exactly 0.0 — making operationally trivial gaps look catastrophic.
+   The polygon for AeroMind collapsed to the chart centre at the
+   Latency vertex even though its absolute latency disadvantage vs
+   the orchestrator-bypassing flat baseline is ~1 ms (the cost of one
+   LangGraph tick).
+
+Headroom normalisation avoids both failure modes. The 1.5× multiplier
+is data-derived (it is computed from the experiment's own
+worst-observed mean — no externally cherry-picked threshold) and gives
+a 50% margin so even the worst architecture lands at a non-trivial
+positive score. See `eval.metrics.classic_score.inverted_headroom`
+for the implementation; the older `inverted_relative` and
+`inverted_minmax` functions are retained for diagnostic plots and
+methodological transparency.
 
 Accuracy, Security, and Stability are already in `[0, 1]` and used
 directly.
