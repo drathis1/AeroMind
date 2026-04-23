@@ -1,0 +1,16 @@
+arch,dimension,raw_mean,raw_std,ci_low,ci_high,n,radar_score
+A0_full,Accuracy,1.0,0.0,1.0,1.0,210,1.0
+A0_full,Security,1.0,0.0,1.0,1.0,210,1.0
+A0_full,Cost,1160.7143,331.1674,1116.681,1206.1143,210,0.2755
+A0_full,Latency,0.9922,0.2153,0.9648,1.0233,210,0.6706
+A0_full,Stability,0.9762,0.0,0.9762,0.9762,210,0.9762
+A1_no_governance,Accuracy,0.4048,0.4175,0.35,0.4611,210,0.4048
+A1_no_governance,Security,0.4286,0.4961,0.3619,0.4952,210,0.4286
+A1_no_governance,Cost,1129.4286,221.7362,1099.6286,1159.2286,210,0.295
+A1_no_governance,Latency,0.9952,0.1649,0.9728,1.0175,210,0.6696
+A1_no_governance,Stability,0.6772,0.0,0.6772,0.6772,210,0.6772
+A2_flat_sequential,Accuracy,0.4048,0.4175,0.35,0.4611,210,0.4048
+A2_flat_sequential,Security,0.4286,0.4961,0.3619,0.4952,210,0.4286
+A2_flat_sequential,Cost,1321.0,0.0,1321.0,1321.0,210,0.1754
+A2_flat_sequential,Latency,0.0082,0.0012,0.0081,0.0084,210,0.9973
+A2_flat_sequential,Stability,0.6954,0.0,0.6954,0.6954,210,0.6954

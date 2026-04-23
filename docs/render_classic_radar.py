@@ -1,179 +1,115 @@
-"""Render the AeroMind CLASSic radar chart.
+"""Render the CLASSic radar chart from the experimental results in
+`eval/classic_summary.csv`.
 
-Compares three agentic architectures across the five CLASSic dimensions
-(Cost, Latency, Accuracy, Security, Stability):
+This script is fully data-driven: it reads the measured radar_score column
+for each (architecture, dimension) pair and plots them. There are no
+hard-coded scores. To regenerate after re-running the experiment:
 
-  1. Standard LLM          — single-prompt GPT-4-class baseline
-  2. Chain-based agent     — ReAct-style multi-agent without governance
-  3. Hierarchical agent    — AeroMind (hierarchical orchestration + governance)
-
-Framework reference:
-  Arunkumar, V., et al. Agentic AI: Architectures, Taxonomies, and Evaluation.
-      arXiv:2601.12560, 2026.
-  Wornow, M., et al. Top of the CLASS: Benchmarking LLM Agents on Real-World
-      Enterprise Tasks. ICLR Workshop, 2025.
-
-Output: docs/classic_radar.png
+    python eval/run_classic_experiment.py --reps 30
+    python docs/render_classic_radar.py
 """
 
 from __future__ import annotations
 
+import csv
+import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.patches import Patch
 
-OUT = Path(__file__).resolve().parent / "classic_radar.png"
+REPO_ROOT = Path(__file__).resolve().parent.parent
+SUMMARY_CSV = REPO_ROOT / "eval" / "classic_summary.csv"
+OUTPUT_PNG = REPO_ROOT / "docs" / "classic_radar.png"
 
-NAVY = "#1B4D3E"
-SLATE = "#2F3E4D"
-BRICK = "#8C2A1E"
-AMBER = "#C77A2E"
-GREY_LINE = "#B8B8B8"
-INK = "#111111"
+DIMENSIONS = ["Accuracy", "Cost", "Latency", "Security", "Stability"]
 
-DIMENSIONS = [
-    "Accuracy\n(subgoal\ncompletion)",
-    "Cost\nefficiency\n(↓ tokens)",
-    "Latency\n(↓ p95 time)",
-    "Security\n(action safety,\n0 hallucinated\ncitations)",
-    "Stability\n(σ across runs)",
-]
-
-# Scores are normalized 0.0–1.0 where 1.0 = best performance in that dimension.
-# Baseline scores are indicative of typical published results for the named
-# architecture class (Arunkumar 2026, Wornow 2025). AeroMind's scores are
-# measured on the Phase 3 scenario set and documented in docs/final_report.md §5.
-ARCHITECTURES = [
-    {
-        "name": "Standard LLM (GPT-4 single-prompt baseline)",
-        "scores": [0.55, 0.85, 0.90, 0.30, 0.70],
-        "color": SLATE,
-        "fill_alpha": 0.10,
-        "line_alpha": 0.85,
-        "marker": "o",
-    },
-    {
-        "name": "Chain-based agent (ReAct, no governance layer)",
-        "scores": [0.75, 0.45, 0.55, 0.45, 0.50],
-        "color": AMBER,
-        "fill_alpha": 0.12,
-        "line_alpha": 0.85,
-        "marker": "s",
-    },
-    {
-        "name": "AeroMind (hierarchical + governance)",
-        "scores": [0.95, 0.70, 0.75, 0.95, 0.90],
-        "color": BRICK,
-        "fill_alpha": 0.22,
-        "line_alpha": 1.0,
-        "marker": "D",
-    },
-]
+ARCH_DISPLAY = {
+    "A0_full": ("AeroMind (A0 — full)", "#1f77b4", 2.5, 1.0),
+    "A1_no_governance": ("A1 — Hierarchical, no governance", "#d62728", 1.8, 0.85),
+    "A2_flat_sequential": ("A2 — Flat sequential, no governance", "#2ca02c", 1.5, 0.85),
+}
 
 
-def close_loop(values):
-    values = list(values)
-    return values + [values[0]]
+def load_radar_scores(path: Path) -> dict[str, dict[str, float]]:
+    out: dict[str, dict[str, float]] = {}
+    with path.open() as f:
+        for row in csv.DictReader(f):
+            arch = row["arch"]
+            dim = row["dimension"]
+            score = float(row["radar_score"])
+            out.setdefault(arch, {})[dim] = score
+    return out
 
 
-def main() -> None:
-    n = len(DIMENSIONS)
-    angles = np.linspace(0, 2 * np.pi, n, endpoint=False).tolist()
-    angles_closed = angles + [angles[0]]
+def plot_radar(scores: dict[str, dict[str, float]], out_path: Path) -> None:
+    angles = np.linspace(0, 2 * np.pi, len(DIMENSIONS), endpoint=False).tolist()
+    angles += angles[:1]
 
-    fig, ax = plt.subplots(
-        figsize=(11.5, 8.2),
-        dpi=180,
-        subplot_kw={"projection": "polar"},
-    )
-    fig.patch.set_facecolor("white")
+    fig, ax = plt.subplots(figsize=(9, 9), subplot_kw=dict(polar=True))
 
-    ax.set_theta_offset(np.pi / 2)
-    ax.set_theta_direction(-1)
+    for arch_key, (label, color, lw, alpha) in ARCH_DISPLAY.items():
+        arch_scores = scores.get(arch_key)
+        if not arch_scores:
+            continue
+        values = [arch_scores.get(d, 0.0) for d in DIMENSIONS]
+        values += values[:1]
+        ax.plot(angles, values, linewidth=lw, color=color, label=label, alpha=alpha)
+        ax.fill(angles, values, color=color, alpha=0.10)
 
-    ax.set_rlabel_position(0)
-    ax.set_ylim(0, 1.0)
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(DIMENSIONS, fontsize=14, fontweight="bold")
+
+    ax.set_ylim(0, 1.05)
     ax.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
-    ax.set_yticklabels(["0.2", "0.4", "0.6", "0.8", "1.0"], fontsize=8, color="#777777")
-    ax.tick_params(axis="y", pad=4)
+    ax.set_yticklabels(["0.2", "0.4", "0.6", "0.8", "1.0"], fontsize=10, color="#555")
+    ax.grid(color="#cccccc", linestyle=":", linewidth=0.7)
+    ax.spines["polar"].set_color("#888888")
 
-    ax.set_xticks(angles)
-    ax.set_xticklabels(DIMENSIONS, fontsize=10.5, color=INK)
-    ax.tick_params(axis="x", pad=18)
-
-    ax.grid(color=GREY_LINE, linewidth=0.7, alpha=0.8)
-    ax.spines["polar"].set_color(GREY_LINE)
-    ax.spines["polar"].set_linewidth(0.8)
-
-    for arch in ARCHITECTURES:
-        values = close_loop(arch["scores"])
-        ax.plot(
-            angles_closed,
-            values,
-            color=arch["color"],
-            linewidth=2.2,
-            alpha=arch["line_alpha"],
-            marker=arch["marker"],
-            markersize=6,
-            markerfacecolor=arch["color"],
-            markeredgecolor="white",
-            markeredgewidth=1.0,
-            label=arch["name"],
-        )
-        ax.fill(
-            angles_closed,
-            values,
-            color=arch["color"],
-            alpha=arch["fill_alpha"],
-        )
-
+    plt.subplots_adjust(top=0.84, bottom=0.20)
     fig.suptitle(
-        "Figure 3 — CLASSic Architectural Comparison",
-        x=0.5,
-        y=1.00,
-        fontsize=15,
+        "AeroMind on the CLASSic framework",
+        fontsize=18,
         fontweight="bold",
-        color=NAVY,
+        y=0.99,
     )
     fig.text(
         0.5,
-        0.960,
-        "AeroMind (red) vs. two reference architectures across the five CLASSic dimensions",
+        0.945,
+        "Measured ablation: 7 scenarios × 3 architectures × 30 repetitions = 630 trials",
         ha="center",
-        fontsize=10,
-        color=SLATE,
-        style="italic",
+        fontsize=11,
+        color="#444",
     )
 
-    # Legend below the plot
     legend = ax.legend(
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.06),
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.22),
         ncol=1,
-        frameon=False,
-        fontsize=10,
+        fontsize=11,
+        frameon=True,
+        edgecolor="#aaa",
     )
     for text in legend.get_texts():
-        text.set_color(INK)
+        text.set_color("#222")
 
-    # Footer citation
-    fig.text(
-        0.5,
-        0.015,
-        "Framework: Arunkumar et al. (arXiv:2601.12560, 2026) · Wornow et al. (ICLR Workshop, 2025).  "
-        "AeroMind scores measured on the Phase 3 scenario set; see §5.2.",
-        ha="center",
-        fontsize=8,
-        color="#666666",
-        style="italic",
-    )
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=180, bbox_inches="tight")
+    print(f"Wrote radar chart -> {out_path}")
 
-    plt.subplots_adjust(top=0.82, bottom=0.22, left=0.08, right=0.92)
-    fig.savefig(OUT, dpi=200, bbox_inches="tight", facecolor="white")
-    print(f"wrote {OUT}")
+
+def main() -> int:
+    if not SUMMARY_CSV.exists():
+        print(
+            f"ERROR: {SUMMARY_CSV} not found. Run "
+            f"`python eval/run_classic_experiment.py --reps 30` first.",
+            file=sys.stderr,
+        )
+        return 1
+    scores = load_radar_scores(SUMMARY_CSV)
+    plot_radar(scores, OUTPUT_PNG)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
