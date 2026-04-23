@@ -25,9 +25,16 @@ OUTPUT_PNG = REPO_ROOT / "docs" / "classic_radar.png"
 DIMENSIONS = ["Accuracy", "Cost", "Latency", "Security", "Stability"]
 
 ARCH_DISPLAY = {
-    "A0_full": ("AeroMind (A0 — full)", "#1f77b4", 2.5, 1.0),
-    "A1_no_governance": ("A1 — Hierarchical, no governance", "#d62728", 1.8, 0.85),
-    "A2_flat_sequential": ("A2 — Flat sequential, no governance", "#2ca02c", 1.5, 0.85),
+    # (label, line_color, line_width, line_alpha, line_style, fill_alpha, marker)
+    "A0_full": (
+        "AeroMind (A0 — full)", "#1f77b4", 3.0, 1.0, "-", 0.18, "o",
+    ),
+    "A1_no_governance": (
+        "A1 — Hierarchical, no governance", "#d62728", 2.2, 1.0, "--", 0.10, "s",
+    ),
+    "A2_flat_sequential": (
+        "A2 — Flat sequential, no governance", "#2ca02c", 2.2, 1.0, ":", 0.10, "^",
+    ),
 }
 
 
@@ -48,14 +55,27 @@ def plot_radar(scores: dict[str, dict[str, float]], out_path: Path) -> None:
 
     fig, ax = plt.subplots(figsize=(9, 9), subplot_kw=dict(polar=True))
 
-    for arch_key, (label, color, lw, alpha) in ARCH_DISPLAY.items():
+    for arch_key, (label, color, lw, line_alpha, ls, fill_alpha, marker) in ARCH_DISPLAY.items():
         arch_scores = scores.get(arch_key)
         if not arch_scores:
             continue
         values = [arch_scores.get(d, 0.0) for d in DIMENSIONS]
         values += values[:1]
-        ax.plot(angles, values, linewidth=lw, color=color, label=label, alpha=alpha)
-        ax.fill(angles, values, color=color, alpha=0.10)
+        ax.plot(
+            angles,
+            values,
+            linewidth=lw,
+            color=color,
+            label=label,
+            alpha=line_alpha,
+            linestyle=ls,
+            marker=marker,
+            markersize=7,
+            markerfacecolor=color,
+            markeredgecolor="white",
+            markeredgewidth=1.2,
+        )
+        ax.fill(angles, values, color=color, alpha=fill_alpha)
 
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(DIMENSIONS, fontsize=14, fontweight="bold")
@@ -76,9 +96,10 @@ def plot_radar(scores: dict[str, dict[str, float]], out_path: Path) -> None:
     fig.text(
         0.5,
         0.945,
-        "Measured ablation: 7 scenarios × 3 architectures × 30 repetitions = 630 trials",
+        "Measured ablation: 7 scenarios × 3 architectures × 30 reps = 630 trials  ·  "
+        "Cost & Latency use min-max-stretch (winner=1.0, loser=0.0)",
         ha="center",
-        fontsize=11,
+        fontsize=10,
         color="#444",
     )
 

@@ -41,7 +41,7 @@ from eval.ablations.a2_flat_sequential import run_trial_a2  # noqa: E402
 from eval.metrics.classic_score import (  # noqa: E402
     aggregate,
     cohens_d,
-    inverted_minmax,
+    inverted_relative,
     stability_score,
     trial_security_score,
 )
@@ -167,9 +167,21 @@ def summarize(rows: list[dict]) -> tuple[list[dict], list[dict]]:
         per_arch[a]["cost_tokens"] = [float(r["cost_tokens"]) for r in arows]
         per_arch[a]["latency_ms"] = [r["latency_ms"] for r in arows]
 
-    # Determine global maxes for inverted normalization (cost, latency).
-    max_cost = max(max(per_arch[a]["cost_tokens"]) for a in archs)
-    max_lat = max(max(per_arch[a]["latency_ms"]) for a in archs)
+    # For radar visualisation we use min-max-stretch normalisation across
+    # architecture *means* on Cost and Latency. This makes the relative
+    # ranking (cheapest, fastest) clearly visible — the architecture that
+    # wins the dimension lands at 1.0; the worst lands at 0.0; intermediate
+    # architectures sit at their true position in between. Raw means and
+    # σ are still reported in the per-dimension table so the absolute scale
+    # is never hidden.
+    cost_means = [aggregate(per_arch[a]["cost_tokens"]).mean for a in archs]
+    lat_means = [aggregate(per_arch[a]["latency_ms"]).mean for a in archs]
+    min_cost, max_cost = min(cost_means), max(cost_means)
+    min_lat, max_lat = min(lat_means), max(lat_means)
+    # Latency σ normaliser uses the latency range (not raw max) so that
+    # Stability stays comparable across experiments with different
+    # latency floors.
+    lat_range = max_lat - min_lat if max_lat > min_lat else 1.0
 
     summary_rows: list[dict] = []
     for a in archs:
@@ -178,13 +190,14 @@ def summarize(rows: list[dict]) -> tuple[list[dict], list[dict]]:
         cost_agg = aggregate(per_arch[a]["cost_tokens"])
         lat_agg = aggregate(per_arch[a]["latency_ms"])
 
-        cost_score = inverted_minmax(cost_agg.mean, max_observed=max_cost)
-        lat_score = inverted_minmax(lat_agg.mean, max_observed=max_lat)
+        cost_score = inverted_relative(
+            cost_agg.mean, min_observed=min_cost, max_observed=max_cost
+        )
+        lat_score = inverted_relative(
+            lat_agg.mean, min_observed=min_lat, max_observed=max_lat
+        )
 
-        # Stability: standard deviations across the per-trial scores (and
-        # latency normalised to its own max so it sits in [0,1] with the
-        # other components).
-        lat_std_norm = lat_agg.std / max_lat if max_lat else 0.0
+        lat_std_norm = lat_agg.std / lat_range
         stab = stability_score(
             accuracy_std=acc_agg.std,
             security_std=sec_agg.std,

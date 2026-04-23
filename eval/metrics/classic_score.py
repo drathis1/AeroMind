@@ -147,10 +147,35 @@ def stability_score(
 
 
 def inverted_minmax(value: float, *, max_observed: float, floor: float = 0.0) -> float:
-    """Map a higher-is-worse value into a 0-1 higher-is-better score."""
+    """Map a higher-is-worse value into a 0-1 higher-is-better score.
+
+    Uses an absolute-zero floor: ``score = 1 - value / max_observed``. This
+    preserves true magnitude (small differences look small) but compresses
+    the visual range when all observed values are clustered.
+    """
     if max_observed <= floor:
         return 1.0
     return max(0.0, min(1.0, 1.0 - ((value - floor) / (max_observed - floor))))
+
+
+def inverted_relative(
+    value: float, *, min_observed: float, max_observed: float
+) -> float:
+    """Min-max-stretch inversion for radar visualisation.
+
+    ``score = 1 - (value - min) / (max - min)``. The cheapest/fastest
+    architecture maps to 1.0; the most expensive/slowest maps to 0.0;
+    intermediate architectures land at their true relative position
+    inside that band. Use this when the *ranking* and *relative gap*
+    matter for the visualisation; raw values are still reported in the
+    per-dimension table so the absolute scale isn't hidden.
+    """
+    if max_observed <= min_observed:
+        return 1.0
+    return max(
+        0.0,
+        min(1.0, 1.0 - ((value - min_observed) / (max_observed - min_observed))),
+    )
 
 
 # ---------------------------------------------------------------------------

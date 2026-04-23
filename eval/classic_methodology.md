@@ -36,9 +36,30 @@ We use the five-dimensional evaluation framework of Arunkumar et al.
 | **Security** | Composite of (a) unsafe-commit prevention rate on containment-stressed scenarios and (b) injection-payload block rate on injection-stressed scenarios. Higher is better. |
 | **Stability** | `1 − mean σ` across Accuracy, Security, and normalised Latency over 30 repetitions. Higher is better. |
 
-For the radar plot, raw values for Cost and Latency (lower is better) are
-inverted with a global min-max normalisation. Accuracy, Security, and
-Stability are already in `[0, 1]` and used directly.
+For the radar plot, raw values for Cost and Latency (lower is better)
+are inverted with **min-max-stretch normalisation across the three
+architecture means**:
+
+```
+radar_score(arch, dim) = 1 − (mean(arch, dim) − min_mean(dim))
+                              / (max_mean(dim) − min_mean(dim))
+```
+
+The architecture that wins the dimension lands at 1.0; the architecture
+that loses it lands at 0.0; intermediate architectures sit at their true
+relative position in between. This was a deliberate choice over an
+absolute-zero inversion (`1 − value/max`): the three architectures'
+absolute Cost values are clustered within ~17% of each other (1129–1321
+tokens), and an absolute-zero inversion compressed them all into a
+narrow band near the centre of the chart, hiding the ranking. The
+min-max-stretch makes the *relative architectural ranking* legible on
+the radar; raw means and σ are still reported in §5.2.1 of the report
+so the absolute scale is never hidden. See
+`eval.metrics.classic_score.inverted_relative` (and the older
+`inverted_minmax` for absolute-zero scaling) for the implementations.
+
+Accuracy, Security, and Stability are already in `[0, 1]` and used
+directly.
 
 ---
 
