@@ -591,6 +591,14 @@ to the architecture itself, not to the agents.
 | Measured Security A0 vs A1 (governance ablated) | **1.00 vs 0.43** (Cohen's *d* = 1.63) | `eval/classic_pairwise.csv` |
 | CLASSic composite (pentagon area, normalised) | **A0: 0.56 · A1: 0.20 · A2: 0.29** | Figure 3, computation in `docs/render_classic_radar.py` |
 
+![Screenshot 01 — pytest 8/8 passing on a clean checkout](./screenshots/01_pytest_green.png)
+
+*Screenshot 01 — Full `pytest -v` output showing 8/8 tests passing on a
+clean checkout (audit chain, two orchestration tests, four Phase-3
+governance tests, one judge-grounding test). Single-glance evidence
+that the build under evaluation is healthy. Source:
+`eval/pytest_phase3_run.txt`; renderer: `eval/render_screenshots.py`.*
+
 ### 5.2 CLASSic measurements and architectural comparison
 
 This is the primary result of Phase 3 and the section that distinguishes
@@ -833,6 +841,14 @@ Assertions verified from this trace: (a) two-phase ordering (ClearPath before
 LoadIQ + CargoComply), (b) parallel dispatch in Phase 2, (c) zero governance
 violations, (d) audit chain valid across the resulting rows.
 
+![Screenshot 03 — E2E-02 two-phase handoff trace (WEATHER_ALERT)](./screenshots/03_trace_E2E02_two_phase.png)
+
+*Screenshot 03 — Orchestrator state dump for E2E-02 showing Phase 1
+(ClearPath only) followed by Phase 2 (LoadIQ + CargoComply dispatched
+in parallel) after `reroute_complete=true` is written to shared state.
+This is the architectural differentiator that a linear pipeline cannot
+express. Source: `traces/trace_E2E02_weather_disruption.json`.*
+
 ### 5.5 Evidence index — screenshots and sample outputs
 
 Both tables below are present in the repository and regenerable. Screenshot
@@ -867,6 +883,68 @@ renderer: `eval/render_screenshots.py`. Screenshot index:
 | `05_orchestrator_new_booking.json` | `NEW_BOOKING` via `run_orchestration` direct; `CLOSED_CLEAN`, 1 autonomous commit |
 | `06_orchestrator_weather_two_phase.json` | `WEATHER_ALERT` via `run_orchestration` direct — two-phase handoff |
 | `07_tool_try_cargocomply_booking_denied.json` | Live `ToolRegistry.enforce_allowlist` denial: `CARGOCOMPLY_BOOKING_FORBIDDEN` |
+
+### 5.6 Screenshot gallery — all scenarios
+
+Each image below is rendered directly from the corresponding artifact
+under `traces/`, `eval/pytest_phase3_run.txt`, or live HTTP calls
+against `uvicorn aeromind.api.main:app`. Regenerate with
+`eval/render_screenshots.py`. Screenshot 01 appears in §5.1 and
+Screenshot 03 in §5.4; the remaining seven scenario screenshots (02,
+06–10) are gathered here for reviewer convenience. Screenshots 04 and
+05 are deliberately co-located with the failure analyses they evidence
+(§6.1 and §6.2 respectively).
+
+![Screenshot 02 — E2E-01 happy path (NEW_BOOKING → CLOSED_CLEAN)](./screenshots/02_trace_E2E01_happy_path.png)
+
+*Screenshot 02 — E2E-01 trace showing the NEW_BOOKING workflow reaching
+`CLOSED_CLEAN`. Both LoadIQ and CargoComply complete; 3 placements;
+judge clean; audit chain valid. Source:
+`traces/trace_E2E01_new_booking.json`.*
+
+![Screenshot 06 — JDG-01 LLM-as-judge flags an ungrounded compliance statement](./screenshots/06_judge_JDG01_ungrounded.png)
+
+*Screenshot 06 — JDG-01 showing `ungrounded_compliance=true` and
+`mandatory_human_review=true` in the judge payload. A compliance
+statement without a `source_chunk_id` is caught deterministically
+before the workflow can autonomously close. Source:
+`traces/trace_JDG01_ungrounded.json`.*
+
+![Screenshot 07 — INJ-01 prompt-injection redaction across four NOTAM payloads](./screenshots/07_injection_INJ01_redaction.png)
+
+*Screenshot 07 — INJ-01 trace showing three attack variants (blocklist
+match, length cap, anomalous token) flagged with the correct
+`pattern`; benign NOTAM text passes through unchanged. The untrusted
+external-text boundary is defended without false-positives on normal
+operational text. Source:
+`traces/trace_INJ01_prompt_injection.json`.*
+
+![Screenshot 08 — ESC-01 human gate (AWAITING_HUMAN)](./screenshots/08_escalation_ESC01_human_gate.png)
+
+*Screenshot 08 — ESC-01 trace showing LoadIQ raising
+`escalation_required`; the orchestrator pauses at `AWAITING_HUMAN`;
+the gate is exposed via `GET /v1/gates`. No auto-advance occurred —
+the human-in-the-loop stopping condition is enforced by the graph
+itself. Source: `traces/trace_ESC01_human_gate.json`.*
+
+![Screenshot 09 — AUD-02 audit hash chain detects post-hoc tampering](./screenshots/09_audit_AUD02_tamper_detected.png)
+
+*Screenshot 09 — AUD-02 showing the clean four-row chain returning
+`(True, None)` and the tampered chain returning
+`(False, 'broken at id=3')`. SHA-256 hash-chain integrity is verified
+end-to-end; any post-hoc payload mutation is detected at the broken
+link. Source: `traces/trace_AUD02_hash_chain.json`.*
+
+![Screenshot 10 — Live API demo pipeline (list → run-all → fetch detail)](./screenshots/10_api_live_demo_pipeline.png)
+
+*Screenshot 10 — Live HTTP calls against the in-memory demo pipeline:
+`GET /api/demo/orders` → `POST /api/demo/orders/{id}/workflow/run-all`
+→ `GET /api/demo/orders/{id}`. Full end-to-end workflow visible
+without a database — proves the API + orchestrator + agents wire
+together outside of unit tests. Source:
+`outputs/sample_runs/01_demo_orders_list.json`,
+`03_demo_workflow_run_all.json`,
+`04_demo_order_detail_after_run.json`.*
 
 ---
 
@@ -929,6 +1007,15 @@ orchestrator's commit counter would bypass the DG lock. Mitigation: keep
 every booking mutation behind the tool registry's `booking_write`
 allowlist (`registry.py`).
 
+![Screenshot 04 — GOV-01 DG-lock containment](./screenshots/04_failure_GOV01_dg_lock.png)
+
+*Screenshot 04 — GOV-01 trace showing `autonomous_commits=0`,
+`dg_lock_blocked_commit` recorded in `messages`, and the
+`booking_write` tool never firing. The containment event — an unsafe
+proposal made and refused at the orchestrator commit boundary — is
+fully visible in a single trace dump. Source:
+`traces/trace_GOV01_dg_lock.json`.*
+
 ### 6.2 FL-002 — Blast-radius cap halted a runaway autonomous chain
 
 **Trigger.** A `NOTAM_FLAG` event with the global blast-radius cap lowered
@@ -970,6 +1057,15 @@ mistakes into a large one.
 **Residual risk.** If the cap is misconfigured (set very high), the safety
 net weakens. Mitigation: the default is 15, and the value is surfaced via
 `GET /v1/governance/metrics` so operators can audit it.
+
+![Screenshot 05 — GOV-02 blast-radius cap halt](./screenshots/05_failure_GOV02_blast_radius.png)
+
+*Screenshot 05 — GOV-02 trace showing `status=BLAST_RADIUS_CAP`,
+`blast_radius_halt=true`, and `completed=[CLEARPATH]` only. LoadIQ
+and CargoComply were never dispatched after the cap tripped — the
+runaway-automation defense terminates the graph at the strict
+`autonomous_commits > cap` boundary. Source:
+`traces/trace_GOV02_blast_radius.json`.*
 
 ### 6.3 Cross-cutting takeaway
 
@@ -1218,9 +1314,16 @@ python3 docs/render_sequence.py        # Figure 2  → docs/sequence_diagram.png
 python3 docs/render_classic_radar.py   # Figure 3  → docs/classic_radar.png
 
 # 7. (Optional) Final report PDF — requires pandoc + xelatex
+#    docs/_pandoc_header.tex constrains image sizes and supplies a
+#    Unicode arrow-glyph fallback so → / ↔ / ≥ / ≤ never render as gaps.
 pandoc docs/final_report.md -o docs/final_report.pdf \
-       --pdf-engine=xelatex --toc --number-sections \
-       -V geometry:margin=1in
+       --pdf-engine=xelatex \
+       --toc --toc-depth=3 \
+       -V geometry:margin=0.85in \
+       -V mainfont="Helvetica" -V monofont="Menlo" \
+       -V fontsize=10pt -V documentclass=article \
+       -V colorlinks=true -V linkcolor=teal -V urlcolor=teal \
+       -H docs/_pandoc_header.tex
 
 # 8. (Optional) Live demo UI
 cd web && npm install && npm run dev
