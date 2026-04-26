@@ -20,6 +20,7 @@
 - [Running Tests](#running-tests)
 - [Interaction Traces](#interaction-traces)
 - [Evaluation Plan](#evaluation-plan)
+- [Folder Guide](#folder-guide)
 - [Known Limitations](#known-limitations)
 - [Team Contributions](#team-contributions)
 
@@ -280,8 +281,8 @@ Eight completed scenarios (including two failure-containment cases) sampled from
 | [`docs/screenshots/`](./docs/screenshots) | 10 labeled evidence PNGs + [`screenshot_index.md`](./docs/screenshots/screenshot_index.md) |
 | [`eval/test_cases.csv`](./eval/test_cases.csv) | 8 scenarios: E2E-01, E2E-02, GOV-01, GOV-02, JDG-01, INJ-01, ESC-01, AUD-02 |
 | [`eval/evaluation_results.csv`](./eval/evaluation_results.csv) | Actual behavior, PASS/FAIL, evidence pointers |
-| [`eval/failure_log.md`](./eval/failure_log.md) | FL-001 (DG lock) and FL-002 (blast-radius cap) in template form |
-| [`eval/failure_analysis.md`](./eval/failure_analysis.md) | Narrative: trigger → behavior → severity → next steps |
+| [`eval/failure_log.md`](./eval/failure_log.md) | FL-001 (DG lock), FL-002 (blast-radius cap), FL-003 (evidence-path live-API 500 → iteration) in template form |
+| [`eval/failure_analysis.md`](./eval/failure_analysis.md) | Narrative: trigger → behavior → severity → next steps (all three cases) |
 | [`eval/version_notes.md`](./eval/version_notes.md) | Commit, env, runner versions |
 | [`eval/pytest_phase3_run.txt`](./eval/pytest_phase3_run.txt) | Raw `pytest -v` output — 8/8 passed |
 | [`eval/capture_traces.py`](./eval/capture_traces.py) | Deterministic evidence-capture script (writes to `traces/`) |
@@ -302,6 +303,77 @@ PYTHONPATH=. python3 -m uvicorn aeromind.api.main:app --host 127.0.0.1 --port 87
 PYTHONPATH=. python3 eval/render_screenshots.py
 python3 docs/render_architecture.py
 ```
+
+---
+
+## Folder Guide
+
+Authoritative map of every directory a reviewer needs. Only the folders that
+contain submission-relevant artifacts are listed; Python cache and build
+directories are ignored.
+
+```
+AeroMind-1/
+├── aeromind/                    # Python package — the system itself
+│   ├── agents/                  #   LoadIQ, ClearPath, CargoComply implementations + runner
+│   ├── api/                     #   FastAPI full-mode app (/v1/workflows/run, /v1/gates, /v1/governance/metrics)
+│   ├── audit/                   #   SHA-256 hash chain (chain.py) + offline verify job
+│   ├── db/                      #   SQLAlchemy repository + SQL for schema and governance views
+│   ├── demo/                    #   In-memory demo pipeline served at /api/demo/* (no Postgres required)
+│   ├── injection/               #   Prompt-injection filter (pattern + heuristic)
+│   ├── judge/                   #   LLM-as-judge worker (heuristics + Gemini)
+│   ├── llm/                     #   Gemini client wrapper
+│   ├── orchestrator/            #   LangGraph graph, routing, shared state, DG lock, blast-radius cap
+│   ├── schemas/                 #   Pydantic domain + agent I/O + audit schemas
+│   └── tools/                   #   Tool registry + allowlist
+├── web/                         # Next.js operator UI (order timeline, swim-lanes, shared-state panel)
+├── docs/                        # Phase 3 report, diagrams, and all screenshot evidence
+│   ├── final_report.md          #   Final report source (9 sections + 4 appendices)
+│   ├── final_report.pdf         #   Rendered final report PDF
+│   ├── architecture_diagram.*   #   System architecture diagram (Mermaid source + PNG)
+│   ├── sequence_diagram.png     #   WEATHER_ALERT two-phase fan-out sequence
+│   ├── classic_radar.png        #   CLASSic 5-dimension radar (A0/A1/A2 ablation)
+│   ├── render_*.py              #   Diagram render scripts
+│   └── screenshots/             #   10 labeled PNGs + screenshot_index.md
+├── eval/                        # Evaluation plan, Phase 3 evidence, CLASSic ablation artifacts
+│   ├── test_cases.csv           #   Scenarios executed for Phase 3 (9 rows incl. API-LIVE-FAIL)
+│   ├── evaluation_results.csv   #   Actual behavior, outcome, evidence per scenario
+│   ├── failure_log.md           #   FL-001, FL-002, FL-003 in template form
+│   ├── failure_analysis.md      #   Narrative: trigger → behavior → severity → iteration
+│   ├── version_notes.md         #   Env, commit, Python/pytest versions at capture and submission
+│   ├── pytest_phase3_run.txt    #   Raw `pytest -v` output (8/8 PASS)
+│   ├── capture_traces.py        #   Deterministic in-process trace capture → traces/*.json
+│   ├── render_screenshots.py    #   Deterministic screenshot render → docs/screenshots/*.png
+│   ├── run_classic_experiment.py #  630-trial CLASSic ablation driver
+│   ├── classic_methodology.md   #   Pre-registered ablation protocol
+│   ├── classic_runs.csv         #   Raw 630-row ablation data
+│   ├── classic_summary.csv      #   Per-architecture × dimension summary
+│   ├── classic_pairwise.csv     #   A0-vs-A1 and A1-vs-A2 effect sizes (Cohen's d)
+│   ├── ablations/               #   Ablation-config + per-arch event/tool counters
+│   └── metrics/                 #   Per-run metric JSON dumps
+├── tests/                       # pytest suites: governance controls, audit chain, orchestrator unit
+├── traces/                      # Eight deterministic JSON state dumps (one per executed scenario)
+├── outputs/sample_runs/         # Eight representative live responses (demo pipeline + full orchestrator)
+├── media/                       # demo_video_link.txt (Drive URL) + demo_video_script.md (4-speaker script)
+├── phase_submissions/phase3/    # Canvas submission bundle
+│   ├── submission_packet.md     #   One-document submission source
+│   ├── submission_packet.pdf    #   Rendered submission packet PDF
+│   ├── submission_checklist.md  #   Ticked-off rubric checklist
+│   ├── reflections/             #   One individual reflection per team member
+│   └── ai_transcript_excerpts.md #  Redacted AI transcripts for disclosure
+├── AI_USAGE.md                  # AI tool usage disclosure (Claude via Cursor, Gemini 2.5 Flash)
+├── Evaluation plan.md           # 35-scenario Phase 2 evaluation matrix (basis for the 8 executed)
+├── Agentic_Systems_Studio_Full_Project_Scope.md  # Course rubric (reference only)
+├── docker-compose.yml           # Postgres + pgvector for full-mode evidence
+├── pyproject.toml               # Package + dev dependencies
+└── README.md                    # This file
+```
+
+**Reviewer shortcut.** Three files answer almost every rubric question:
+`docs/final_report.pdf` (everything in one place),
+`phase_submissions/phase3/submission_packet.pdf` (Canvas bundle with all
+links), and `eval/pytest_phase3_run.txt` (8/8 tests green on the
+submission commit).
 
 ---
 

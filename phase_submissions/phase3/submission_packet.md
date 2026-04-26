@@ -115,7 +115,7 @@ with index at
 
 - **In-house scenarios executed (Phase 3):** 8 / 8 PASS across the six dimensions (end-to-end, governance, escalation, adversarial, judge, audit). Files: [`../../eval/test_cases.csv`](../../eval/test_cases.csv), [`../../eval/evaluation_results.csv`](../../eval/evaluation_results.csv), [`../../eval/pytest_phase3_run.txt`](../../eval/pytest_phase3_run.txt).
 - **CLASSic ablation study:** 630 trials (7 scenarios × 3 architectures × 30 repetitions). Full: A0 (AeroMind, full governance) vs A1 (no-governance) vs A2 (flat sequential ReAct). Accuracy 1.00 / Security 1.00 with σ = 0 for A0; 0.40 / 0.43 for A1 and A2. Cohen's *d* = 2.02 and 1.63. Files: [`../../eval/classic_methodology.md`](../../eval/classic_methodology.md), [`../../eval/run_classic_experiment.py`](../../eval/run_classic_experiment.py), [`../../eval/classic_runs.csv`](../../eval/classic_runs.csv), [`../../eval/classic_summary.csv`](../../eval/classic_summary.csv), [`../../eval/classic_pairwise.csv`](../../eval/classic_pairwise.csv), [`../../eval/ablations/`](../../eval/ablations/), [`../../eval/metrics/`](../../eval/metrics/).
-- **Failure cases:** FL-001 (DG lock containment) + FL-002 (blast-radius cap). Narrative: [`../../eval/failure_log.md`](../../eval/failure_log.md), [`../../eval/failure_analysis.md`](../../eval/failure_analysis.md). Includes an honest limitation note on `CLOSED_CLEAN` vs `AWAITING_HUMAN` semantics.
+- **Failure cases (three documented):** FL-001 (DG-lock containment), FL-002 (blast-radius cap containment), FL-003 (evidence-path iteration — live full-mode API returned HTTP 500 without Postgres; pivoted to in-memory demo pipeline for screenshot 10, added demo-vs-full-mode README docs, captured 8 multi-mode responses under `outputs/sample_runs/`). Narrative: [`../../eval/failure_log.md`](../../eval/failure_log.md), [`../../eval/failure_analysis.md`](../../eval/failure_analysis.md). Includes an honest limitation note on `CLOSED_CLEAN` vs `AWAITING_HUMAN` semantics (FL-001 next-step improvement).
 - **Version notes:** [`../../eval/version_notes.md`](../../eval/version_notes.md) (commit, Python 3.13.7, pytest 9.0.2).
 
 ## List of submitted files and folders
@@ -185,6 +185,7 @@ AeroMind-1/
 1. The 8 Phase 3 in-house scenarios used **deterministic mocks** for external APIs and LLM calls. The CLASSic ablation is a controlled simulation. No live Gemini calls are embedded in the submitted evidence. The heuristic-only path of the judge is what's exercised in the test suite.
 2. Scenario GOV-01 correctly contains the unsafe action (autonomous commit zeroed, booking never written) but ends with workflow `status = CLOSED_CLEAN` rather than the intended `AWAITING_HUMAN`. Fix queued; disclosed in `eval/failure_analysis.md`.
 3. Phase 2 referenced 35 scenarios; Phase 3 executed 8. The remaining 27 are tracked as Phase 4 follow-ups in `docs/final_report.md §8`.
+4. The full-mode API (`POST /v1/workflows/run`) requires Postgres. When `docker-compose up -d` is not running, the route returns HTTP 500 — exactly what FL-003 documents. For a reviewer who does not want to stand up the database, the in-memory `/api/demo/*` pipeline (screenshot 10 and `outputs/sample_runs/00–04`) exercises the same sequential three-agent flow with no external dependencies.
 
 ---
 

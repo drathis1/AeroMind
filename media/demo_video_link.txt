@@ -10,7 +10,3 @@ LINK: https://drive.google.com/file/d/1Q5czRLLhPplQSR4hRwT4SjW2nHern6Dh/view
 Script: media/demo_video_script.md
 Speakers: 4 (high-level architecture / agents / governance / evaluations)
 Runtime target: 5:00
-
-Reviewer note: file is hosted on Google Drive. If the link prompts for
-sign-in, please request access or contact any team member listed in
-the submission packet.

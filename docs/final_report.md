@@ -2,11 +2,12 @@
 
 **The AI Operations Brain for Air Cargo**
 
-**Course:** Agentic Systems Studio · Track A: Technical Build
-**Phase:** 3 — Final Product, Evidence, and Reflection
-**Submission date:** April 2026
-**Repository commit at submission:** `3922b685e28444ad9f019db446dfd5573b20947e`
-**Repository:** `https://github.com/drathis1/AeroMind`
+- **Course:** Agentic Systems Studio · Track A: Technical Build
+- **Phase:** 3 — Final Product, Evidence, and Reflection
+- **Submission date:** April 2026
+- **Evidence-capture commit (all traces, screenshots, pytest run):** `3922b685e28444ad9f019db446dfd5573b20947e`
+- **Submission HEAD (docs + PDF export):** tagged `v1.0-phase3-submission` on branch `main`
+- **Repository:** `https://github.com/drathis1/AeroMind`
 
 | Team member | Phase 3 area of ownership |
 |---|---|
@@ -57,7 +58,7 @@ isolates *which architectural layer* pays for *which dimension*.
 | CLASSic architectural comparison | Delivered | `docs/classic_radar.png` (Figure 3); §5.2 per-dimension measurements |
 | **CLASSic ablation study (630 trials)** | Delivered | `eval/run_classic_experiment.py`, `eval/ablations/`, `eval/metrics/`, `eval/classic_runs.csv`, `eval/classic_summary.csv`, `eval/classic_pairwise.csv`, `eval/classic_methodology.md` |
 | Eight executed scenarios (of 35 planned) | Delivered | `eval/test_cases.csv`, `eval/evaluation_results.csv`, `traces/*.json` |
-| Two failure cases with containment evidence | Delivered | `eval/failure_log.md`, `eval/failure_analysis.md`, §6 |
+| Three documented failure cases (two containment + one evidence-path iteration) | Delivered | `eval/failure_log.md`, `eval/failure_analysis.md`, §6 |
 | Seven governance controls (evidence per control) | Delivered | §7.1; traces `GOV01`, `GOV02`, `INJ01`, `JDG01`, `AUD02`, `ESC01` |
 | Individual reflections (one per member) | Delivered | `phase_submissions/phase3/reflections/` |
 | AI usage disclosure | Delivered | `AI_USAGE.md` + `phase_submissions/phase3/ai_transcript_excerpts.md` |
@@ -537,7 +538,8 @@ values once API budget is secured.
 
 | Field | Value |
 |---|---|
-| Repository commit | `3922b685e28444ad9f019db446dfd5573b20947e` (branch `main`) |
+| Evidence-capture commit | `3922b685e28444ad9f019db446dfd5573b20947e` (branch `main`) |
+| Submission HEAD | tagged `v1.0-phase3-submission` on branch `main` |
 | OS | macOS 15 (darwin 25.0.0) |
 | Python | 3.13.5 (Anaconda distribution) |
 | Pytest | 8.3.4 with `pytest-asyncio` 1.3.0 |
@@ -950,11 +952,15 @@ together outside of unit tests. Source:
 
 ## 6. Failure analysis
 
-Both failure cases are **containment events**: an unsafe or runaway
-autonomous action was *attempted* by an agent and the orchestrator's
-governance layer *prevented it from taking effect*. This is the core safety
-story of AeroMind and the direct evidence that the Phase 1 contract —
-"agents propose, the orchestrator commits" — holds.
+Three failures are documented. FL-001 and FL-002 are **system-behavior
+containment events** — unsafe or runaway autonomous actions that were
+*attempted* by an agent and the orchestrator's governance layer
+*prevented from taking effect*. This is the core safety story of AeroMind
+and the direct evidence that the Phase 1 contract — "agents propose, the
+orchestrator commits" — holds. FL-003 is an **evidence-capture failure**
+encountered during Phase 3 itself: a real HTTP 500 from the full-mode API
+that blocked a planned screenshot, uncovered a gap in the evidence path
+(not in the system code), and drove a concrete documented iteration.
 
 ### 6.1 FL-001 — DG lock blocked an unsafe autonomous reroute commit
 
@@ -1067,14 +1073,97 @@ runaway-automation defense terminates the graph at the strict
 `autonomous_commits > cap` boundary. Source:
 `traces/trace_GOV02_blast_radius.json`.*
 
-### 6.3 Cross-cutting takeaway
+### 6.3 FL-003 — Live full-mode API smoke returned HTTP 500 during evidence capture
 
-Both failures show the same pattern: an agent proposed an unsafe action, and
-the orchestrator refused to commit it. The Phase 1 contract holds, and the
-traces + screenshots + regression tests collectively demonstrate it. Any
-future regression in either control would break a green test *and* a green
-trace, so both layers would have to be subverted simultaneously to ship an
-unsafe action.
+**Trigger.** While assembling the Phase 3 evidence package, we ran a live
+smoke call against the full-mode orchestrator API
+(`POST /v1/workflows/run`) to produce an "end-to-end live HTTP call"
+screenshot. The call returned HTTP 500.
+
+**What happened (observed behavior).** `/v1/workflows/run` is the
+full-mode API route. It requires a Postgres + pgvector session to open a
+workflow row, route events, and persist the audit chain. In the
+evidence-capture sandbox, `docker-compose up -d` was **not** running, so
+the FastAPI dependency chain that acquires a DB session failed before any
+agent logic was reached. FastAPI returned HTTP 500. The planned
+screenshot could not be produced the originally intended way.
+
+**Why it happened.** The system has two operating modes, and the
+evidence-capture script was reaching for the wrong one. The full mode
+(`aeromind.api.main`) is the production path and mandates Postgres; the
+demo mode (`aeromind.demo.api`, served under `/api/demo/*`) is a
+self-contained in-memory pipeline that uses the sequential CargoComply →
+ClearPath → LoadIQ demo orchestrator and requires no external
+dependencies. Both modes are legitimate, but only the demo pipeline is
+reachable without `docker-compose`. The failure was a gap in the
+evidence *path*, not in the system code.
+
+**Severity.** Low (evidence path). No production logic was affected;
+8/8 unit tests still passed on the same commit. The cost was one missed
+screenshot capture, not a system defect.
+
+**What changed after testing.**
+
+- **Switched screenshot 10 to the in-memory demo pipeline.** The current
+  `docs/screenshots/10_api_live_demo_pipeline.png` shows live HTTP calls
+  against `/api/demo/*` (list orders → run-all → fetch detail) and is
+  reproducible from a fresh checkout with nothing but `pip install -e .`
+  and `uvicorn aeromind.api.main:app`. The in-memory pipeline still
+  exercises the sequential three-agent flow, so the screenshot remains
+  faithful to the agent coordination we are demonstrating.
+- **Added explicit "demo mode vs full mode" documentation** in the
+  README Quick Start and in the submission packet. A reviewer now knows
+  up-front that the demo pipeline is the default reproducible path and
+  that full-mode evidence requires Postgres.
+- **Captured representative responses from both pipelines** into
+  `outputs/sample_runs/` (eight JSON files: five from the demo pipeline,
+  two from the full orchestrator, one demonstrating the tool-allowlist
+  deny path). A reviewer who cannot or will not stand up Postgres
+  locally still sees live, full-orchestrator output on disk.
+- **Hardened the evidence-capture scripts.** `eval/capture_traces.py`
+  now runs entirely in-process — no HTTP, no external services — so the
+  deterministic traces in `traces/*.json` are immune to this class of
+  environment failure.
+
+**Residual risk.** If a future reviewer specifically wants to verify the
+full-mode API over live HTTP, they must run `docker-compose up -d` and
+hit `POST /v1/workflows/run` themselves. The README Quick Start
+documents this path. No residual risk to the automated evidence
+package.
+
+**Why this counts as a "failure + iteration" rather than a non-event.**
+A concrete failure happened (HTTP 500, reproducible), we can explain
+why (missing DB session, wrong evidence path), we iterated (switched to
+the demo pipeline, documented the two modes, broadened the sample set),
+and something demonstrable changed (screenshot 10 now succeeds on a
+fresh checkout, the README has the missing context, and
+`outputs/sample_runs/` gained an eight-file multi-mode sample set).
+
+![Screenshot 10 — Live HTTP calls against the in-memory demo pipeline](./screenshots/10_api_live_demo_pipeline.png)
+
+*Screenshot 10 — post-iteration live HTTP evidence against
+`/api/demo/*`. Replaces the originally planned full-mode API screenshot
+that failed with HTTP 500. Source:
+`docs/screenshots/10_api_live_demo_pipeline.png`; pairs with
+`outputs/sample_runs/01_demo_orders_list.json` through
+`04_demo_order_detail_after_run.json`.*
+
+### 6.4 Cross-cutting takeaway
+
+FL-001 and FL-002 show the system doing the right thing under
+adversarial input: an agent proposed an unsafe action, and the
+orchestrator refused to commit it. The Phase 1 contract holds, and the
+traces + screenshots + regression tests collectively demonstrate it.
+Any future regression in either control would break a green test *and* a
+green trace, so both layers would have to be subverted simultaneously to
+ship an unsafe action.
+
+FL-003 shows us doing the right thing when the evidence apparatus
+itself broke: identify the failure, explain the root cause, change the
+path, and ship more reproducible artifacts than we started with.
+Together the three failures cover both axes the rubric cares about:
+**safety containment under stress** (FL-001, FL-002) and **honest
+iteration under imperfect conditions** (FL-003).
 
 ---
 
@@ -1402,5 +1491,7 @@ OpenAPI spec: `GET /openapi.json` on the running server.
 
 ---
 
-*End of report. For the raw repository at submission time, see commit
-`3922b685e28444ad9f019db446dfd5573b20947e` on branch `main`.*
+*End of report. For the raw repository at evidence-capture time, see commit
+`3922b685e28444ad9f019db446dfd5573b20947e` on branch `main`. The submission
+HEAD — with this report, the rendered PDFs, and the Folder Guide — is
+tagged `v1.0-phase3-submission`.*

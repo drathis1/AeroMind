@@ -7,90 +7,228 @@
   <meta name="author" content="Dhiksha Rathis · Sai Karthik · Smridhi Patwari · Tina Sibbal" />
   <title>AeroMind — Phase 3 Submission Packet</title>
   <style>
-    /* Default styles provided by pandoc.
-    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-    */
-    span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-    /* CSS for syntax highlighting */
-    html { -webkit-text-size-adjust: 100%; }
-    pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-    pre > code.sourceCode > span:empty { height: 1.2em; }
-    .sourceCode { overflow: visible; }
-    code.sourceCode > span { color: inherit; text-decoration: inherit; }
-    div.sourceCode { margin: 1em 0; }
-    pre.sourceCode { margin: 0; }
-    @media screen {
-    div.sourceCode { overflow: auto; }
-    }
-    @media print {
-    pre > code.sourceCode { white-space: pre-wrap; }
-    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-    }
-    pre.numberSource code
-      { counter-reset: source-line 0; }
-    pre.numberSource code > span
-      { position: relative; left: -4em; counter-increment: source-line; }
-    pre.numberSource code > span > a:first-child::before
-      { content: counter(source-line);
-        position: relative; left: -1em; text-align: right; vertical-align: baseline;
-        border: none; display: inline-block;
-        -webkit-touch-callout: none; -webkit-user-select: none;
-        -khtml-user-select: none; -moz-user-select: none;
-        -ms-user-select: none; user-select: none;
-        padding: 0 4px; width: 4em;
-        color: #aaaaaa;
-      }
-    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-    div.sourceCode
-      {   }
-    @media screen {
-    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-    }
-    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-    code span.at { color: #7d9029; } /* Attribute */
-    code span.bn { color: #40a070; } /* BaseN */
-    code span.bu { color: #008000; } /* BuiltIn */
-    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-    code span.ch { color: #4070a0; } /* Char */
-    code span.cn { color: #880000; } /* Constant */
-    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-    code span.dt { color: #902000; } /* DataType */
-    code span.dv { color: #40a070; } /* DecVal */
-    code span.er { color: #ff0000; font-weight: bold; } /* Error */
-    code span.ex { } /* Extension */
-    code span.fl { color: #40a070; } /* Float */
-    code span.fu { color: #06287e; } /* Function */
-    code span.im { color: #008000; font-weight: bold; } /* Import */
-    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-    code span.op { color: #666666; } /* Operator */
-    code span.ot { color: #007020; } /* Other */
-    code span.pp { color: #bc7a00; } /* Preprocessor */
-    code span.sc { color: #4070a0; } /* SpecialChar */
-    code span.ss { color: #bb6688; } /* SpecialString */
-    code span.st { color: #4070a0; } /* String */
-    code span.va { color: #19177c; } /* Variable */
-    code span.vs { color: #4070a0; } /* VerbatimString */
-    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-  </style>
-  <link rel="stylesheet" href="/dev/fd/11" />
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">
+@page {
+size: Letter;
+margin: 0.8in 0.75in 0.85in 0.75in;
+}
+html {
+-webkit-print-color-adjust: exact;
+print-color-adjust: exact;
+}
+body {
+font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 10.5pt;
+line-height: 1.45;
+color: #111;
+max-width: 7.0in;
+margin: 0 auto;
+padding: 0.2in 0 0.4in 0;
+word-wrap: break-word;
+overflow-wrap: anywhere;
+}
+h1, h2, h3, h4, h5, h6 {
+font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+color: #111;
+page-break-after: avoid;
+break-after: avoid-page;
+margin-top: 1.2em;
+margin-bottom: 0.45em;
+line-height: 1.25;
+}
+h1 { font-size: 20pt; border-bottom: 1.5pt solid #222; padding-bottom: 4pt; }
+h2 { font-size: 15pt; border-bottom: 0.6pt solid #888; padding-bottom: 2pt; margin-top: 1.6em; }
+h3 { font-size: 12.5pt; }
+h4 { font-size: 11pt; font-style: italic; }
+p, li, td, th {
+orphans: 3;
+widows: 3;
+}
+a {
+color: #1a4b8c;
+text-decoration: none;
+word-break: break-word;
+}
+strong { color: #000; }
+hr {
+border: none;
+border-top: 0.6pt solid #aaa;
+margin: 1.4em 0;
+}
+
+code, pre {
+font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+font-size: 9pt;
+}
+p code, li code, td code {
+background: #f2f2f2;
+padding: 0.5pt 2.5pt;
+border-radius: 2pt;
+white-space: break-spaces;
+word-break: break-word;
+}
+pre {
+background: #f6f6f6;
+border: 0.5pt solid #ddd;
+border-radius: 3pt;
+padding: 6pt 8pt;
+overflow: hidden;
+white-space: pre-wrap;
+word-break: break-word;
+page-break-inside: avoid;
+break-inside: avoid;
+font-size: 8.5pt;
+line-height: 1.35;
+}
+pre code { background: transparent; padding: 0; }
+
+table {
+border-collapse: collapse;
+width: 100%;
+table-layout: fixed;
+margin: 0.6em 0 1em 0;
+font-size: 9.5pt;
+page-break-inside: auto;
+}
+table, thead, tbody, tr {
+page-break-inside: avoid;
+break-inside: avoid;
+}
+th, td {
+border: 0.5pt solid #bbb;
+padding: 3.5pt 5pt;
+vertical-align: top;
+text-align: left;
+word-break: break-word;
+overflow-wrap: anywhere;
+hyphens: auto;
+}
+th {
+background: #eee;
+font-weight: 600;
+}
+tbody tr:nth-child(even) { background: #fafafa; }
+
+img {
+max-width: 100%;
+max-height: 8.5in;
+height: auto;
+display: block;
+margin: 0.6em auto;
+page-break-inside: avoid;
+break-inside: avoid;
+}
+figure {
+margin: 0.8em 0;
+page-break-inside: avoid;
+break-inside: avoid;
+}
+figcaption, em {
+font-size: 9.5pt;
+color: #333;
+}
+
+p > img + br + em,
+p > img {
+page-break-after: avoid;
+}
+
+blockquote {
+margin: 0.7em 0;
+padding: 0.3em 0.9em;
+border-left: 2.5pt solid #888;
+color: #333;
+background: #f8f8f8;
+page-break-inside: avoid;
+}
+
+ul, ol { padding-left: 1.35em; }
+li { margin: 0.15em 0; }
+
+h1 + p, h2 + p, h3 + p, h4 + p {
+page-break-before: avoid;
+}
+</style>
 </head>
 <body>
 <header id="title-block-header">
@@ -161,9 +299,7 @@ multi-dimensional framework via a pre-registered 630-trial ablation
 study that measures Accuracy, Security, Cost, Latency, and Stability for
 AeroMind against two baselines.</p>
 <h2 id="repository-link">Repository link</h2>
-<p><strong>GitHub:</strong> <a
-href="https://github.com/drathis1/AeroMind"
-class="uri">https://github.com/drathis1/AeroMind</a> <strong>Branch at
+<p><strong>GitHub:</strong> <a href="https://github.com/drathis1/AeroMind" class="uri">https://github.com/drathis1/AeroMind</a> <strong>Branch at
 submission:</strong> <code>phase-3</code> <strong>Evidence-capture
 commit:</strong> <code>3922b685e28444ad9f019db446dfd5573b20947e</code> —
 the commit under which <code>pytest_phase3_run.txt</code>, all JSON
@@ -175,23 +311,18 @@ report-PDF export commits on top of the evidence capture; re-runs of
 <code>eval/run_classic_experiment.py</code> reproduce identical
 outputs.</p>
 <h2 id="minute-video-link">5-minute video link</h2>
-<p><strong>VIDEO:</strong> <a
-href="https://drive.google.com/file/d/1Q5czRLLhPplQSR4hRwT4SjW2nHern6Dh/view"
-class="uri">https://drive.google.com/file/d/1Q5czRLLhPplQSR4hRwT4SjW2nHern6Dh/view</a></p>
+<p><strong>VIDEO:</strong> <a href="https://drive.google.com/file/d/1Q5czRLLhPplQSR4hRwT4SjW2nHern6Dh/view" class="uri">https://drive.google.com/file/d/1Q5czRLLhPplQSR4hRwT4SjW2nHern6Dh/view</a></p>
 <p>Hosted on Google Drive
 (<code>Final Presentation Agentic AeroMind.mp4</code>). If the link
 prompts for sign-in, please request access or contact any team
 member.</p>
-<p>Script for the recording lives at <a
-href="../../media/demo_video_script.md"><code>../../media/demo_video_script.md</code></a>
+<p>Script for the recording lives at <a href="../../media/demo_video_script.md"><code>../../media/demo_video_script.md</code></a>
 and is rubric-mapped for all eight required elements (problem,
 architecture, main workflow, coordination, evidence, failure, final
 artifact, product over slides).</p>
 <h2 id="final-report">Final report</h2>
-<p>The full final report is shipped as a separate PDF: <a
-href="../../docs/final_report.pdf"><code>../../docs/final_report.pdf</code></a>
-(1.7 MB; source at <a
-href="../../docs/final_report.md"><code>../../docs/final_report.md</code></a>).
+<p>The full final report is shipped as a separate PDF: <a href="../../docs/final_report.pdf"><code>../../docs/final_report.pdf</code></a>
+(1.7 MB; source at <a href="../../docs/final_report.md"><code>../../docs/final_report.md</code></a>).
 It covers all nine required sections:</p>
 <ol type="1">
 <li>Problem and user</li>
@@ -208,25 +339,19 @@ It covers all nine required sections:</p>
 surface, references).</p>
 <h2 id="architecture-diagram">Architecture diagram</h2>
 <ul>
-<li><a
-href="../../docs/architecture_diagram.png"><code>../../docs/architecture_diagram.png</code></a>
+<li><a href="../../docs/architecture_diagram.png"><code>../../docs/architecture_diagram.png</code></a>
 — five-layer system diagram (events → orchestrator → agents → governance
 → shared state + human gate)</li>
-<li><a
-href="../../docs/sequence_diagram.png"><code>../../docs/sequence_diagram.png</code></a>
+<li><a href="../../docs/sequence_diagram.png"><code>../../docs/sequence_diagram.png</code></a>
 — <code>WEATHER_ALERT</code> two-phase fan-out sequence</li>
-<li><a
-href="../../docs/classic_radar.png"><code>../../docs/classic_radar.png</code></a>
+<li><a href="../../docs/classic_radar.png"><code>../../docs/classic_radar.png</code></a>
 — CLASSic pentagon comparing AeroMind vs A1 (no-governance) vs A2 (flat
 sequential)</li>
 </ul>
-<p>Mermaid source for the primary diagram: <a
-href="../../docs/architecture_diagram.mmd"><code>../../docs/architecture_diagram.mmd</code></a>.</p>
+<p>Mermaid source for the primary diagram: <a href="../../docs/architecture_diagram.mmd"><code>../../docs/architecture_diagram.mmd</code></a>.</p>
 <h2 id="screenshot-index">Screenshot index</h2>
-<p>Ten captioned PNGs in <a
-href="../../docs/screenshots/"><code>../../docs/screenshots/</code></a>
-with index at <a
-href="../../docs/screenshots/screenshot_index.md"><code>../../docs/screenshots/screenshot_index.md</code></a>:</p>
+<p>Ten captioned PNGs in <a href="../../docs/screenshots/"><code>../../docs/screenshots/</code></a>
+with index at <a href="../../docs/screenshots/screenshot_index.md"><code>../../docs/screenshots/screenshot_index.md</code></a>:</p>
 <table>
 <colgroup>
 <col style="width: 50%" />
@@ -286,37 +411,31 @@ href="../../docs/screenshots/screenshot_index.md"><code>../../docs/screenshots/s
 <ul>
 <li><strong>In-house scenarios executed (Phase 3):</strong> 8 / 8 PASS
 across the six dimensions (end-to-end, governance, escalation,
-adversarial, judge, audit). Files: <a
-href="../../eval/test_cases.csv"><code>../../eval/test_cases.csv</code></a>,
-<a
-href="../../eval/evaluation_results.csv"><code>../../eval/evaluation_results.csv</code></a>,
-<a
-href="../../eval/pytest_phase3_run.txt"><code>../../eval/pytest_phase3_run.txt</code></a>.</li>
+adversarial, judge, audit). Files: <a href="../../eval/test_cases.csv"><code>../../eval/test_cases.csv</code></a>,
+<a href="../../eval/evaluation_results.csv"><code>../../eval/evaluation_results.csv</code></a>,
+<a href="../../eval/pytest_phase3_run.txt"><code>../../eval/pytest_phase3_run.txt</code></a>.</li>
 <li><strong>CLASSic ablation study:</strong> 630 trials (7 scenarios × 3
 architectures × 30 repetitions). Full: A0 (AeroMind, full governance) vs
 A1 (no-governance) vs A2 (flat sequential ReAct). Accuracy 1.00 /
 Security 1.00 with σ = 0 for A0; 0.40 / 0.43 for A1 and A2. Cohen’s
-<em>d</em> = 2.02 and 1.63. Files: <a
-href="../../eval/classic_methodology.md"><code>../../eval/classic_methodology.md</code></a>,
-<a
-href="../../eval/run_classic_experiment.py"><code>../../eval/run_classic_experiment.py</code></a>,
-<a
-href="../../eval/classic_runs.csv"><code>../../eval/classic_runs.csv</code></a>,
-<a
-href="../../eval/classic_summary.csv"><code>../../eval/classic_summary.csv</code></a>,
-<a
-href="../../eval/classic_pairwise.csv"><code>../../eval/classic_pairwise.csv</code></a>,
+<em>d</em> = 2.02 and 1.63. Files: <a href="../../eval/classic_methodology.md"><code>../../eval/classic_methodology.md</code></a>,
+<a href="../../eval/run_classic_experiment.py"><code>../../eval/run_classic_experiment.py</code></a>,
+<a href="../../eval/classic_runs.csv"><code>../../eval/classic_runs.csv</code></a>,
+<a href="../../eval/classic_summary.csv"><code>../../eval/classic_summary.csv</code></a>,
+<a href="../../eval/classic_pairwise.csv"><code>../../eval/classic_pairwise.csv</code></a>,
 <a href="../../eval/ablations/"><code>../../eval/ablations/</code></a>,
 <a href="../../eval/metrics/"><code>../../eval/metrics/</code></a>.</li>
-<li><strong>Failure cases:</strong> FL-001 (DG lock containment) +
-FL-002 (blast-radius cap). Narrative: <a
-href="../../eval/failure_log.md"><code>../../eval/failure_log.md</code></a>,
-<a
-href="../../eval/failure_analysis.md"><code>../../eval/failure_analysis.md</code></a>.
+<li><strong>Failure cases (three documented):</strong> FL-001 (DG-lock
+containment), FL-002 (blast-radius cap containment), FL-003
+(evidence-path iteration — live full-mode API returned HTTP 500 without
+Postgres; pivoted to in-memory demo pipeline for screenshot 10, added
+demo-vs-full-mode README docs, captured 8 multi-mode responses under
+<code>outputs/sample_runs/</code>). Narrative: <a href="../../eval/failure_log.md"><code>../../eval/failure_log.md</code></a>,
+<a href="../../eval/failure_analysis.md"><code>../../eval/failure_analysis.md</code></a>.
 Includes an honest limitation note on <code>CLOSED_CLEAN</code> vs
-<code>AWAITING_HUMAN</code> semantics.</li>
-<li><strong>Version notes:</strong> <a
-href="../../eval/version_notes.md"><code>../../eval/version_notes.md</code></a>
+<code>AWAITING_HUMAN</code> semantics (FL-001 next-step
+improvement).</li>
+<li><strong>Version notes:</strong> <a href="../../eval/version_notes.md"><code>../../eval/version_notes.md</code></a>
 (commit, Python 3.13.7, pytest 9.0.2).</li>
 </ul>
 <h2 id="list-of-submitted-files-and-folders">List of submitted files and
@@ -394,11 +513,17 @@ commit zeroed, booking never written) but ends with workflow
 <li>Phase 2 referenced 35 scenarios; Phase 3 executed 8. The remaining
 27 are tracked as Phase 4 follow-ups in
 <code>docs/final_report.md §8</code>.</li>
+<li>The full-mode API (<code>POST /v1/workflows/run</code>) requires
+Postgres. When <code>docker-compose up -d</code> is not running, the
+route returns HTTP 500 — exactly what FL-003 documents. For a reviewer
+who does not want to stand up the database, the in-memory
+<code>/api/demo/*</code> pipeline (screenshot 10 and
+<code>outputs/sample_runs/00–04</code>) exercises the same sequential
+three-agent flow with no external dependencies.</li>
 </ol>
 <hr />
 <p><em>Assembled for Canvas submission. Render to PDF with:</em></p>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pandoc</span> phase_submissions/phase3/submission_packet.md <span class="dt">\</span></span>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pandoc</span> phase_submissions/phase3/submission_packet.md <span class="dt">\</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-o</span> phase_submissions/phase3/submission_packet.pdf <span class="dt">\</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--pdf-engine</span><span class="op">=</span>xelatex <span class="dt">\</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> docs/_pandoc_header.tex</span></code></pre></div>

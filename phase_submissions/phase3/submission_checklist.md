@@ -13,8 +13,9 @@ submitting on Canvas.
 - [x] Evaluation files — `eval/test_cases.csv`,
       `eval/evaluation_results.csv`, `eval/version_notes.md`,
       `eval/pytest_phase3_run.txt`
-- [x] Failure log — `eval/failure_log.md` (narrative:
-      `eval/failure_analysis.md`)
+- [x] Failure log — `eval/failure_log.md` (three cases: FL-001 DG lock,
+      FL-002 blast-radius cap, FL-003 live-API evidence-path iteration).
+      Narrative: `eval/failure_analysis.md`
 - [x] AI usage log — `AI_USAGE.md`
 - [x] Final artifact or app — code in `aeromind/`, runnable via README
 - [x] Exported outputs or artifacts — `traces/` + `outputs/sample_runs/`
