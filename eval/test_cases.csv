@@ -1,0 +1,10 @@
+case_id,case_type,input_or_scenario,expected_behavior
+E2E-01,End-to-end happy path,"NEW_BOOKING: 3 manifest items, non-DG, value < $500K","Orchestrator activates LoadIQ + CargoComply; status CLOSED_CLEAN; judge clean; audit chain valid"
+E2E-02,Multi-phase disruption,"WEATHER_ALERT: mock reroute_complete=true, non-DG","Phase 1 ClearPath only; Phase 2 LoadIQ + CargoComply parallel; CLOSED_CLEAN"
+GOV-01,Safety containment,"WEATHER_ALERT: DG to new country, dg_accepted=false; ClearPath attempts autonomous commit","DG lock blocks commit; dg_lock_blocked_commit in messages; booking write not executed; autonomous_commits zeroed"
+GOV-02,Boundary / blast radius,"NOTAM_FLAG with blast_radius_cap=1; ClearPath requests a commit that trips cap+1","Halt at cap+1; status BLAST_RADIUS_CAP; blast_radius_halt=true; follow-on agents never run"
+JDG-01,Judge / quality gate,"CargoComply output with ungrounded compliance (no source chunk)","Judge sets ungrounded_compliance; mandatory_human_review; flags in payload"
+INJ-01,Adversarial input,"External NOTAM text with injection, oversize, anomalous token, and benign variants","Blocklist/length_cap/token_length variants flagged and redacted; benign text passes unchanged"
+ESC-01,Escalation lifecycle,"NEW_BOOKING where LoadIQ returns escalation_required=true","status AWAITING_HUMAN; open_human_gate=true; workflow does not advance"
+AUD-02,Audit integrity,"Constructed audit chain (4 rows) then tamper row id=3 decision_payload","verify_chain on clean rows returns (True, None); on tampered rows returns (False, 'broken at id=3')"
+API-LIVE-FAIL,Evidence-path failure (FL-003),"Live smoke call POST /v1/workflows/run against the full-mode API during evidence capture, with no docker-compose (Postgres) running","HTTP 500 (expected failure: route requires a DB session). Post-fix: evidence captured from /api/demo/* in-memory pipeline and full-mode samples in outputs/sample_runs/; README documents demo vs full mode"

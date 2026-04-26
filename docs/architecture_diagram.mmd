@@ -1,0 +1,52 @@
+%% AeroMind architecture — Phase 3
+%% Paste into https://mermaid.live to export SVG/PNG if desired.
+flowchart TB
+    subgraph L1["Layer 1 — Event ingestion"]
+        W["Weather / NOTAM feeds"]
+        B["Airline booking events"]
+        S["Shipper notes / customs"]
+    end
+
+    subgraph L2["Layer 2 — Orchestrator (LangGraph)"]
+        O["Event router<br/>• routing.first_agents_for_event<br/>• follow-on wave after reroute_complete"]
+        G["Governance layer<br/>• DG lock<br/>• Blast-radius cap<br/>• Tool allowlist<br/>• Prompt-injection sanitizer<br/>• Audit hash chain"]
+    end
+
+    subgraph L3["Layer 3 — Agents"]
+        LoadIQ["LoadIQ<br/>load optimization"]
+        ClearPath["ClearPath<br/>disruption rerouting"]
+        CargoComply["CargoComply<br/>regulatory compliance"]
+    end
+
+    subgraph L4["Layer 4 — Shared state + evidence"]
+        DB[(PostgreSQL<br/>+ pgvector RAG)]
+        Judge["LLM-as-judge<br/>flags for mandatory human review"]
+        Audit["Audit log (hash chain)"]
+    end
+
+    subgraph L5["Layer 5 — Human + API"]
+        API["/v1/workflows/run<br/>/v1/gates/resolve<br/>/v1/governance/metrics"]
+        Ops["Ops dashboard<br/>escalation resolve"]
+    end
+
+    W --> O
+    B --> O
+    S --> G
+
+    O -->|NEW_BOOKING or MANIFEST_CHANGE| LoadIQ
+    O -->|NEW_BOOKING or cargo_type_changed| CargoComply
+    O -->|WEATHER_ALERT or NOTAM_FLAG| ClearPath
+    ClearPath -. reroute_complete=true .-> O
+    O -->|follow-on wave| LoadIQ
+    O -->|follow-on wave| CargoComply
+
+    LoadIQ --> G
+    ClearPath --> G
+    CargoComply --> G
+    G --> DB
+    G --> Audit
+    DB --> Judge
+    Judge --> API
+    Audit --> API
+    API --> Ops
+    Ops -->|resolve gate| O

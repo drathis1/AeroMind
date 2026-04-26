@@ -1,0 +1,48 @@
+% Pandoc header includes for AeroMind final report PDF rendering.
+
+% --- Image sizing: constrain every embedded screenshot/diagram so it fits
+% the page width and never overflows the page height.
+\usepackage{float}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf}
+\setkeys{Gin}{width=0.92\linewidth,keepaspectratio}
+\let\OldIncludegraphics\includegraphics
+\renewcommand{\includegraphics}[2][]{%
+  \OldIncludegraphics[#1,width=0.92\linewidth,height=0.78\textheight,keepaspectratio]{#2}%
+}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.7}
+
+% --- Unicode fallbacks: Helvetica is the main font but lacks arrow glyphs
+% (U+2192, U+2194, U+2190 and similar). Map them to a font that has them
+% so the body text never shows missing-glyph gaps.
+\usepackage{newunicodechar}
+\usepackage{fontspec}
+\newfontfamily\arrowfont{Apple Symbols}
+\newunicodechar{→}{{\arrowfont\char"2192}}
+\newunicodechar{←}{{\arrowfont\char"2190}}
+\newunicodechar{↔}{{\arrowfont\char"2194}}
+\newunicodechar{⇒}{{\arrowfont\char"21D2}}
+\newunicodechar{⇐}{{\arrowfont\char"21D0}}
+\newunicodechar{⇔}{{\arrowfont\char"21D4}}
+\newunicodechar{≥}{{\arrowfont\char"2265}}
+\newunicodechar{≤}{{\arrowfont\char"2264}}
+\newunicodechar{≠}{{\arrowfont\char"2260}}
+\newunicodechar{≈}{{\arrowfont\char"2248}}
+\newunicodechar{×}{{\arrowfont\char"00D7}}
+\newunicodechar{·}{{\arrowfont\char"00B7}}
+\newunicodechar{σ}{{\arrowfont\char"03C3}}
+\newunicodechar{µ}{{\arrowfont\char"00B5}}
+\newunicodechar{α}{{\arrowfont\char"03B1}}
+\newunicodechar{β}{{\arrowfont\char"03B2}}
+\newunicodechar{Δ}{{\arrowfont\char"0394}}
+\newunicodechar{∆}{{\arrowfont\char"2206}}
+\newunicodechar{−}{{\arrowfont\char"2212}}
+\newunicodechar{—}{{\arrowfont\char"2014}}
+\newunicodechar{–}{{\arrowfont\char"2013}}
+\newunicodechar{“}{{\arrowfont\char"201C}}
+\newunicodechar{”}{{\arrowfont\char"201D}}
+\newunicodechar{‘}{{\arrowfont\char"2018}}
+\newunicodechar{’}{{\arrowfont\char"2019}}

@@ -1,0 +1,51 @@
+{
+  "case_id": "GOV-02",
+  "scenario": "Blast-radius cap halts workflow at cap+1",
+  "expected": "status=BLAST_RADIUS_CAP; blast_radius_halt=True",
+  "blast_radius_cap_override": 1,
+  "state": {
+    "workflow_id": "W-GOV02",
+    "event_id": "E-GOV02",
+    "event_type": "NOTAM_FLAG",
+    "payload": {},
+    "pending": [],
+    "completed": [
+      "CLEARPATH"
+    ],
+    "agent_results": {
+      "CLEARPATH": {
+        "disruption_summary": "simulated disruption",
+        "ranked_options": [
+          {
+            "route_id": "r1",
+            "description": "via X",
+            "transit_delta_hours": 1.0,
+            "cost_delta_usd": 1.0,
+            "reliability_score": 0.9
+          }
+        ],
+        "selected_option_id": null,
+        "booking_commit_requested": true,
+        "shipper_notified": false,
+        "handoff": {
+          "reroute_complete": true
+        },
+        "escalation_required": false,
+        "escalation_reason": null,
+        "ground_truth_ranked_for_judge": []
+      }
+    },
+    "reroute_complete": true,
+    "dg_accepted": false,
+    "cargo_is_dg_bool": false,
+    "reroute_new_country": false,
+    "open_human_gate": false,
+    "blast_radius_halt": true,
+    "status": "BLAST_RADIUS_CAP",
+    "autonomous_commits": 1,
+    "messages": [
+      "initial_route:['CLEARPATH']",
+      "blast_radius_cap"
+    ]
+  }
+}

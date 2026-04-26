@@ -2,8 +2,10 @@
 
 **AeroMind** is a multi-agent AI platform that autonomously manages three critical operations in air cargo logistics: real-time cargo load optimization, disruption-driven flight rerouting, and regulatory compliance automation. Three specialized agents — **LoadIQ**, **ClearPath**, and **CargoComply** — operate through a LangGraph-based central orchestrator, sharing state and handing off tasks in real time.
 
-> **Course:** Agentic Systems Studio · Track A: Technical Build · Phase 2  
-> **Team:** Dhiksha Rathis, Sai Karthik, Smridhi Patwari, Tina Sibbal
+> **Course:** Agentic Systems Studio · Track A: Technical Build · Phase 3  
+> **Team:** Dhiksha Rathis, Sai Karthik, Smridhi Patwari, Tina Sibbal  
+> **Video:** <https://drive.google.com/file/d/1Q5czRLLhPplQSR4hRwT4SjW2nHern6Dh/view> (5-minute walkthrough)  
+> **Final report PDF:** [`docs/final_report.pdf`](docs/final_report.pdf)
 
 ---
 
@@ -18,6 +20,7 @@
 - [Running Tests](#running-tests)
 - [Interaction Traces](#interaction-traces)
 - [Evaluation Plan](#evaluation-plan)
+- [Folder Guide](#folder-guide)
 - [Known Limitations](#known-limitations)
 - [Team Contributions](#team-contributions)
 
@@ -241,29 +244,136 @@ pytest tests/ -v --integration
 pytest tests/ --cov=aeromind --cov-report=term-missing
 ```
 
-See `evaluation_plan.md` for the full 35-scenario test matrix and execution phases.
+See [`Evaluation plan.md`](./Evaluation%20plan.md) for the full 35-scenario test matrix and execution phases.
 
 ---
 
 ## Interaction Traces
 
-Real interaction traces captured from running workflows are in the `traces/` folder:
+Real interaction traces captured from running workflows are in the `traces/` folder (regenerate with `eval/capture_traces.py`):
 
 | File | Scenario | Status |
 |---|---|---|
 | `traces/trace_E2E01_new_booking.json` | Happy-path NEW_BOOKING, 3 items, non-DG | CLOSED_CLEAN |
 | `traces/trace_E2E02_weather_disruption.json` | WEATHER_ALERT → two-phase handoff | CLOSED_CLEAN |
-| `traces/trace_GOV01_dg_lock.json` | DG lock blocks autonomous commit | DG_LOCK_BREACH blocked |
+| `traces/trace_GOV01_dg_lock.json` | DG lock blocks autonomous commit | `dg_lock_blocked_commit` (contained) |
 | `traces/trace_GOV02_blast_radius.json` | Blast-radius cap halts at cap+1 | BLAST_RADIUS_CAP |
 | `traces/trace_INJ01_prompt_injection.json` | Injection in NOTAM text → redacted | REDACTED_INJECTION |
-| `traces/trace_COMP01_compound.json` | DG + weather + high-value + sanctions | 4 controls fired |
-| `traces/pytest_output.txt` | Full pytest run output | 28/35 PASS |
+| `traces/trace_JDG01_ungrounded.json` | Judge flags ungrounded compliance statement | `mandatory_human_review=true` |
+| `traces/trace_ESC01_human_gate.json` | LoadIQ `escalation_required=true` | AWAITING_HUMAN |
+| `traces/trace_AUD02_hash_chain.json` | Audit hash chain verify + tamper detection | verify ok / `broken at id=3` |
+| `eval/pytest_phase3_run.txt` | Full pytest run output | 8/8 PASS |
 
 ---
 
 ## Evaluation Plan
 
-See [`evaluation_plan.md`](./evaluation_plan.md) for the full test matrix: 35 scenarios across 6 dimensions (end-to-end, governance, escalation, injection, LLM-as-judge, audit), with success criteria, measures, and a 4-phase execution plan.
+See [`Evaluation plan.md`](./Evaluation%20plan.md) for the full test matrix: 35 scenarios across 6 dimensions (end-to-end, governance, escalation, injection, LLM-as-judge, audit), with success criteria, measures, and a 4-phase execution plan.
+
+### Phase 3 evaluation package (`eval/`)
+
+Eight completed scenarios (including two failure-containment cases) sampled from the 35-scenario matrix. Each scenario has a real JSON trace and a labeled screenshot.
+
+| File | Purpose |
+|---|---|
+| [`docs/final_report.md`](./docs/final_report.md) | **Phase 3 final report** (export to PDF) |
+| [`docs/architecture_diagram.png`](./docs/architecture_diagram.png) | Standalone architecture diagram (Mermaid source: `docs/architecture_diagram.mmd`) |
+| [`docs/screenshots/`](./docs/screenshots) | 10 labeled evidence PNGs + [`screenshot_index.md`](./docs/screenshots/screenshot_index.md) |
+| [`eval/test_cases.csv`](./eval/test_cases.csv) | 8 scenarios: E2E-01, E2E-02, GOV-01, GOV-02, JDG-01, INJ-01, ESC-01, AUD-02 |
+| [`eval/evaluation_results.csv`](./eval/evaluation_results.csv) | Actual behavior, PASS/FAIL, evidence pointers |
+| [`eval/failure_log.md`](./eval/failure_log.md) | FL-001 (DG lock), FL-002 (blast-radius cap), FL-003 (evidence-path live-API 500 → iteration) in template form |
+| [`eval/failure_analysis.md`](./eval/failure_analysis.md) | Narrative: trigger → behavior → severity → next steps (all three cases) |
+| [`eval/version_notes.md`](./eval/version_notes.md) | Commit, env, runner versions |
+| [`eval/pytest_phase3_run.txt`](./eval/pytest_phase3_run.txt) | Raw `pytest -v` output — 8/8 passed |
+| [`eval/capture_traces.py`](./eval/capture_traces.py) | Deterministic evidence-capture script (writes to `traces/`) |
+| [`eval/render_screenshots.py`](./eval/render_screenshots.py) | Screenshot renderer (writes to `docs/screenshots/`) |
+| [`AI_USAGE.md`](./AI_USAGE.md) | AI tool disclosure (Claude + Cursor usage, what we validated) |
+| [`outputs/sample_runs/`](./outputs/sample_runs) | Eight captured live responses — health, demo pipeline, orchestrator, allowlist denial |
+| [`media/demo_video_link.txt`](./media/demo_video_link.txt) | 5-minute demo video — [Drive link](https://drive.google.com/file/d/1Q5czRLLhPplQSR4hRwT4SjW2nHern6Dh/view) (script: [`media/demo_video_script.md`](./media/demo_video_script.md)) |
+| [`eval/run_classic_experiment.py`](./eval/run_classic_experiment.py) + [`eval/classic_methodology.md`](./eval/classic_methodology.md) | 630-trial CLASSic ablation driver (A0 / A1 / A2 × 7 scenarios × 30 reps); outputs: `eval/classic_runs.csv`, `classic_summary.csv`, `classic_pairwise.csv`; radar chart: `docs/classic_radar.png` |
+| [`phase_submissions/phase3/`](./phase_submissions/phase3) | Canvas submission bundle — checklist, four individual reflections, AI transcript excerpts |
+
+Reproduce end to end:
+
+```bash
+pip install -e ".[dev]"
+PYTHONPATH=. python3 -m pytest tests/ -v | tee eval/pytest_phase3_run.txt
+PYTHONPATH=. python3 eval/capture_traces.py
+PYTHONPATH=. python3 -m uvicorn aeromind.api.main:app --host 127.0.0.1 --port 8765 &
+PYTHONPATH=. python3 eval/render_screenshots.py
+python3 docs/render_architecture.py
+```
+
+---
+
+## Folder Guide
+
+Authoritative map of every directory a reviewer needs. Only the folders that
+contain submission-relevant artifacts are listed; Python cache and build
+directories are ignored.
+
+```
+AeroMind-1/
+├── aeromind/                    # Python package — the system itself
+│   ├── agents/                  #   LoadIQ, ClearPath, CargoComply implementations + runner
+│   ├── api/                     #   FastAPI full-mode app (/v1/workflows/run, /v1/gates, /v1/governance/metrics)
+│   ├── audit/                   #   SHA-256 hash chain (chain.py) + offline verify job
+│   ├── db/                      #   SQLAlchemy repository + SQL for schema and governance views
+│   ├── demo/                    #   In-memory demo pipeline served at /api/demo/* (no Postgres required)
+│   ├── injection/               #   Prompt-injection filter (pattern + heuristic)
+│   ├── judge/                   #   LLM-as-judge worker (heuristics + Gemini)
+│   ├── llm/                     #   Gemini client wrapper
+│   ├── orchestrator/            #   LangGraph graph, routing, shared state, DG lock, blast-radius cap
+│   ├── schemas/                 #   Pydantic domain + agent I/O + audit schemas
+│   └── tools/                   #   Tool registry + allowlist
+├── web/                         # Next.js operator UI (order timeline, swim-lanes, shared-state panel)
+├── docs/                        # Phase 3 report, diagrams, and all screenshot evidence
+│   ├── final_report.md          #   Final report source (9 sections + 4 appendices)
+│   ├── final_report.pdf         #   Rendered final report PDF
+│   ├── architecture_diagram.*   #   System architecture diagram (Mermaid source + PNG)
+│   ├── sequence_diagram.png     #   WEATHER_ALERT two-phase fan-out sequence
+│   ├── classic_radar.png        #   CLASSic 5-dimension radar (A0/A1/A2 ablation)
+│   ├── render_*.py              #   Diagram render scripts
+│   └── screenshots/             #   10 labeled PNGs + screenshot_index.md
+├── eval/                        # Evaluation plan, Phase 3 evidence, CLASSic ablation artifacts
+│   ├── test_cases.csv           #   Scenarios executed for Phase 3 (9 rows incl. API-LIVE-FAIL)
+│   ├── evaluation_results.csv   #   Actual behavior, outcome, evidence per scenario
+│   ├── failure_log.md           #   FL-001, FL-002, FL-003 in template form
+│   ├── failure_analysis.md      #   Narrative: trigger → behavior → severity → iteration
+│   ├── version_notes.md         #   Env, commit, Python/pytest versions at capture and submission
+│   ├── pytest_phase3_run.txt    #   Raw `pytest -v` output (8/8 PASS)
+│   ├── capture_traces.py        #   Deterministic in-process trace capture → traces/*.json
+│   ├── render_screenshots.py    #   Deterministic screenshot render → docs/screenshots/*.png
+│   ├── run_classic_experiment.py #  630-trial CLASSic ablation driver
+│   ├── classic_methodology.md   #   Pre-registered ablation protocol
+│   ├── classic_runs.csv         #   Raw 630-row ablation data
+│   ├── classic_summary.csv      #   Per-architecture × dimension summary
+│   ├── classic_pairwise.csv     #   A0-vs-A1 and A1-vs-A2 effect sizes (Cohen's d)
+│   ├── ablations/               #   Ablation-config + per-arch event/tool counters
+│   └── metrics/                 #   Per-run metric JSON dumps
+├── tests/                       # pytest suites: governance controls, audit chain, orchestrator unit
+├── traces/                      # Eight deterministic JSON state dumps (one per executed scenario)
+├── outputs/sample_runs/         # Eight representative live responses (demo pipeline + full orchestrator)
+├── media/                       # demo_video_link.txt (Drive URL) + demo_video_script.md (4-speaker script)
+├── phase_submissions/phase3/    # Canvas submission bundle
+│   ├── submission_packet.md     #   One-document submission source
+│   ├── submission_packet.pdf    #   Rendered submission packet PDF
+│   ├── submission_checklist.md  #   Ticked-off rubric checklist
+│   ├── reflections/             #   One individual reflection per team member
+│   └── ai_transcript_excerpts.md #  Redacted AI transcripts for disclosure
+├── AI_USAGE.md                  # AI tool usage disclosure (Claude via Cursor, Gemini 2.5 Flash)
+├── Evaluation plan.md           # 35-scenario Phase 2 evaluation matrix (basis for the 8 executed)
+├── Agentic_Systems_Studio_Full_Project_Scope.md  # Course rubric (reference only)
+├── docker-compose.yml           # Postgres + pgvector for full-mode evidence
+├── pyproject.toml               # Package + dev dependencies
+└── README.md                    # This file
+```
+
+**Reviewer shortcut.** Three files answer almost every rubric question:
+`docs/final_report.pdf` (everything in one place),
+`phase_submissions/phase3/submission_packet.pdf` (Canvas bundle with all
+links), and `eval/pytest_phase3_run.txt` (8/8 tests green on the
+submission commit).
 
 ---
 
@@ -272,7 +382,7 @@ See [`evaluation_plan.md`](./evaluation_plan.md) for the full test matrix: 35 sc
 These are honest constraints of the current implementation, not oversights:
 
 **1. Mock APIs in Phases 1–2.**  
-All external integrations (weather, NOTAM, airline booking, CBP) use deterministic mock responses. The system is designed for real API integration but enterprise agreements are required for production access. Mock behavior is documented in `aeromind/mocks/`.
+All external integrations (weather, NOTAM, airline booking, CBP) use deterministic mock responses inside the default agent runners in `aeromind/agents/impl.py` (the `else` branches when `GeminiClient.enabled()` is false). The system is designed for real API integration but enterprise agreements are required for production access.
 
 **2. LLM judge faithfulness is probabilistic.**  
 The Gemini-based judge targets ≥90% flag detection on synthetic anomalies, but no LLM judge achieves 100% recall. An ungrounded compliance statement could theoretically pass the heuristic check if phrased unusually. Mitigation: heuristic pre-filters (`worker.py:22–53`) run before the LLM call and catch the most common failure modes deterministically.
@@ -293,6 +403,15 @@ If the Gemini API returns a malformed JSON response mid-stream, the judge worker
 
 ## Team Contributions
 
+### Phase 3 Contribution Update
+
+| Area | Lead | Phase 3 Deliverables |
+|---|---|---|
+| **Agent architecture & orchestration** | Dhiksha | Final tuning of `graph.py` / `routing.py`; 8 Phase-3 scenarios authored in `eval/capture_traces.py`; governance regression tests in `tests/test_phase3_controls.py`; co-designed the 630-trial CLASSic ablation driver (`eval/run_classic_experiment.py`) |
+| **LoadIQ + tooling + API** | Sai | Hardened tool allowlist and registry; maintained FastAPI app and Docker Compose; wrote `eval/render_screenshots.py` (10 PNGs); populated `outputs/sample_runs/` (8 JSON samples) |
+| **ClearPath + UI + docs** | Smridhi | Next.js operator UI under `web/` (order timeline, swim-lanes, shared-state panel); prompt-injection filter updates; rewrote README and assembled `docs/final_report.md` (9 sections + 4 appendices) |
+| **CargoComply + audit + judge** | Tina | LLM-as-judge grounding checks; SHA-256 audit chain verification; Postgres governance views; wrote `AI_USAGE.md`, demo-video script, submission packet, and reflections scaffolding |
+
 ### Phase 2 Contribution Update
 
 | Area | Lead | Phase 2 Deliverables |
@@ -301,5 +420,5 @@ If the Gemini API returns a malformed JSON response mid-stream, the judge worker
 | **LoadIQ agent** | Sai | `agents/loadiq.py` (load optimization logic, ULD assignment, weight/balance constraints), `registry.py` (tool allowlist), FastAPI app (`api/main.py`), Docker Compose setup |
 | **ClearPath agent** | Smridhi | `agents/clearpath.py` (disruption detection, route ranking, reroute handoff), `filter.py` (prompt injection sanitizer), interaction traces, README |
 | **CargoComply agent** | Tina | `agents/cargocomply.py` (RAG compliance sweep, document generation), `worker.py` (LLM-as-judge), `chain.py` (audit hash chain), `db/sql/` (schema & governance views) |
-| **Evaluation & testing** | Dhiksha, Sai | `evaluation_plan.md` (35 scenarios, 6 dimensions, 4-phase execution plan), `tests/` (unit + integration test suite) |
+| **Evaluation & testing** | Dhiksha, Sai | `Evaluation plan.md` (35 scenarios, 6 dimensions, 4-phase execution plan), `tests/` (unit + integration test suite), `eval/capture_traces.py`, `eval/render_screenshots.py` |
 | **Documentation** | Smridhi, Tina | README, architecture diagram, Phase 2 docx |
