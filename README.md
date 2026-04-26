@@ -2,8 +2,10 @@
 
 **AeroMind** is a multi-agent AI platform that autonomously manages three critical operations in air cargo logistics: real-time cargo load optimization, disruption-driven flight rerouting, and regulatory compliance automation. Three specialized agents — **LoadIQ**, **ClearPath**, and **CargoComply** — operate through a LangGraph-based central orchestrator, sharing state and handing off tasks in real time.
 
-> **Course:** Agentic Systems Studio · Track A: Technical Build · Phase 2  
-> **Team:** Dhiksha Rathis, Sai Karthik, Smridhi Patwari, Tina Sibbal
+> **Course:** Agentic Systems Studio · Track A: Technical Build · Phase 3  
+> **Team:** Dhiksha Rathis, Sai Karthik, Smridhi Patwari, Tina Sibbal  
+> **Video:** <https://drive.google.com/file/d/1Q5czRLLhPplQSR4hRwT4SjW2nHern6Dh/view> (5-minute walkthrough)  
+> **Final report PDF:** [`docs/final_report.pdf`](docs/final_report.pdf)
 
 ---
 
@@ -286,7 +288,8 @@ Eight completed scenarios (including two failure-containment cases) sampled from
 | [`eval/render_screenshots.py`](./eval/render_screenshots.py) | Screenshot renderer (writes to `docs/screenshots/`) |
 | [`AI_USAGE.md`](./AI_USAGE.md) | AI tool disclosure (Claude + Cursor usage, what we validated) |
 | [`outputs/sample_runs/`](./outputs/sample_runs) | Eight captured live responses — health, demo pipeline, orchestrator, allowlist denial |
-| [`media/demo_video_link.txt`](./media/demo_video_link.txt) | 5-minute demo video link (record + paste URL) |
+| [`media/demo_video_link.txt`](./media/demo_video_link.txt) | 5-minute demo video — [Drive link](https://drive.google.com/file/d/1Q5czRLLhPplQSR4hRwT4SjW2nHern6Dh/view) (script: [`media/demo_video_script.md`](./media/demo_video_script.md)) |
+| [`eval/run_classic_experiment.py`](./eval/run_classic_experiment.py) + [`eval/classic_methodology.md`](./eval/classic_methodology.md) | 630-trial CLASSic ablation driver (A0 / A1 / A2 × 7 scenarios × 30 reps); outputs: `eval/classic_runs.csv`, `classic_summary.csv`, `classic_pairwise.csv`; radar chart: `docs/classic_radar.png` |
 | [`phase_submissions/phase3/`](./phase_submissions/phase3) | Canvas submission bundle — checklist, four individual reflections, AI transcript excerpts |
 
 Reproduce end to end:
@@ -327,6 +330,15 @@ If the Gemini API returns a malformed JSON response mid-stream, the judge worker
 ---
 
 ## Team Contributions
+
+### Phase 3 Contribution Update
+
+| Area | Lead | Phase 3 Deliverables |
+|---|---|---|
+| **Agent architecture & orchestration** | Dhiksha | Final tuning of `graph.py` / `routing.py`; 8 Phase-3 scenarios authored in `eval/capture_traces.py`; governance regression tests in `tests/test_phase3_controls.py`; co-designed the 630-trial CLASSic ablation driver (`eval/run_classic_experiment.py`) |
+| **LoadIQ + tooling + API** | Sai | Hardened tool allowlist and registry; maintained FastAPI app and Docker Compose; wrote `eval/render_screenshots.py` (10 PNGs); populated `outputs/sample_runs/` (8 JSON samples) |
+| **ClearPath + UI + docs** | Smridhi | Next.js operator UI under `web/` (order timeline, swim-lanes, shared-state panel); prompt-injection filter updates; rewrote README and assembled `docs/final_report.md` (9 sections + 4 appendices) |
+| **CargoComply + audit + judge** | Tina | LLM-as-judge grounding checks; SHA-256 audit chain verification; Postgres governance views; wrote `AI_USAGE.md`, demo-video script, submission packet, and reflections scaffolding |
 
 ### Phase 2 Contribution Update
 
