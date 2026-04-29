@@ -286,7 +286,7 @@ Eight completed scenarios (including two failure-containment cases) sampled from
 | [`eval/version_notes.md`](./eval/version_notes.md) | Commit, env, runner versions |
 | [`eval/pytest_phase3_run.txt`](./eval/pytest_phase3_run.txt) | Raw `pytest -v` output — 8/8 passed |
 | [`eval/capture_traces.py`](./eval/capture_traces.py) | Deterministic evidence-capture script (writes to `traces/`) |
-| [`eval/render_screenshots.py`](./eval/render_screenshots.py) | Screenshot renderer (writes to `docs/screenshots/`) |
+| [`eval/render_screenshots.py`](./eval/render_screenshots.py) | Optional: renders text-card PNGs from traces/pytest (not part of the submission report; real UI shots live in `docs/screenshots/ui/`) |
 | [`AI_USAGE.md`](./AI_USAGE.md) | AI tool disclosure (Claude + Cursor usage, what we validated) |
 | [`outputs/sample_runs/`](./outputs/sample_runs) | Eight captured live responses — health, demo pipeline, orchestrator, allowlist denial |
 | [`media/demo_video_link.txt`](./media/demo_video_link.txt) | 5-minute demo video — [Drive link](https://drive.google.com/file/d/1Q5czRLLhPplQSR4hRwT4SjW2nHern6Dh/view) (script: [`media/demo_video_script.md`](./media/demo_video_script.md)) |
@@ -343,7 +343,7 @@ AeroMind-1/
 │   ├── version_notes.md         #   Env, commit, Python/pytest versions at capture and submission
 │   ├── pytest_phase3_run.txt    #   Raw `pytest -v` output (8/8 PASS)
 │   ├── capture_traces.py        #   Deterministic in-process trace capture → traces/*.json
-│   ├── render_screenshots.py    #   Deterministic screenshot render → docs/screenshots/*.png
+│   ├── render_screenshots.py    #   Optional trace-as-PNG cards (submission uses UI PNGs in docs/screenshots/ui/)
 │   ├── run_classic_experiment.py #  630-trial CLASSic ablation driver
 │   ├── classic_methodology.md   #   Pre-registered ablation protocol
 │   ├── classic_runs.csv         #   Raw 630-row ablation data
@@ -408,7 +408,7 @@ If the Gemini API returns a malformed JSON response mid-stream, the judge worker
 | Area | Lead | Phase 3 Deliverables |
 |---|---|---|
 | **Agent architecture & orchestration** | Dhiksha | Final tuning of `graph.py` / `routing.py`; 8 Phase-3 scenarios authored in `eval/capture_traces.py`; governance regression tests in `tests/test_phase3_controls.py`; co-designed the 630-trial CLASSic ablation driver (`eval/run_classic_experiment.py`) |
-| **LoadIQ + tooling + API** | Sai | Hardened tool allowlist and registry; maintained FastAPI app and Docker Compose; wrote `eval/render_screenshots.py` (10 PNGs); populated `outputs/sample_runs/` (8 JSON samples) |
+| **LoadIQ + tooling + API** | Sai | Hardened tool allowlist and registry; maintained FastAPI app and Docker Compose; wrote `eval/render_screenshots.py` (optional trace cards); populated `outputs/sample_runs/` (8 JSON samples) |
 | **ClearPath + UI + docs** | Smridhi | Next.js operator UI under `web/` (order timeline, swim-lanes, shared-state panel); prompt-injection filter updates; rewrote README and assembled `docs/final_report.md` (9 sections + 4 appendices) |
 | **CargoComply + audit + judge** | Tina | LLM-as-judge grounding checks; SHA-256 audit chain verification; Postgres governance views; wrote `AI_USAGE.md`, demo-video script, submission packet, and reflections scaffolding |
 

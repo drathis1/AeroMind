@@ -86,36 +86,36 @@ references).
 
 ## Architecture diagram
 
-- [`../../docs/architecture_diagram.png`](../../docs/architecture_diagram.png) — five-layer system diagram (events → orchestrator → agents → governance → shared state + human gate)
+- [`../../docs/architecture_full_phase2.png`](../../docs/architecture_full_phase2.png) — full four-layer system (Figure 1 in the final report)
+- [`../../docs/architecture_flow_phase2.png`](../../docs/architecture_flow_phase2.png) — orchestration & governance runtime flow (Figure 2 reference)
+- [`../../docs/architecture_diagram.png`](../../docs/architecture_diagram.png) — earlier five-layer diagram (legacy)
 - [`../../docs/sequence_diagram.png`](../../docs/sequence_diagram.png) — `WEATHER_ALERT` two-phase fan-out sequence
-- [`../../docs/classic_radar.png`](../../docs/classic_radar.png) — CLASSic pentagon comparing AeroMind vs A1 (no-governance) vs A2 (flat sequential)
+- [`../../docs/classic_radar.png`](../../docs/classic_radar.png) — CLASSic pentagon (A0 vs A1 vs A2)
 
 Mermaid source for the primary diagram: [`../../docs/architecture_diagram.mmd`](../../docs/architecture_diagram.mmd).
 
 ## Screenshot index
 
-Ten captioned PNGs in [`../../docs/screenshots/`](../../docs/screenshots/)
-with index at
-[`../../docs/screenshots/screenshot_index.md`](../../docs/screenshots/screenshot_index.md):
+Six captioned **UI** screenshots (Next.js ops dashboard) in
+[`../../docs/screenshots/ui/`](../../docs/screenshots/ui/) with index at
+[`../../docs/screenshots/screenshot_index.md`](../../docs/screenshots/screenshot_index.md).
+Programmatic trace renders (`eval/render_screenshots.py`) are optional and not
+required for submission — **trace JSON** evidence lives in [`../../traces/`](../../traces/).
 
 | File | What it shows |
 |---|---|
-| `01_pytest_green.png` | 8/8 regression tests passing |
-| `02_trace_E2E01_happy_path.png` | LoadIQ + CargoComply parallel fan-out, `CLOSED_CLEAN` |
-| `03_trace_E2E02_two_phase.png` | Weather reroute — Phase 1 ClearPath → Phase 2 fan-out |
-| `04_failure_GOV01_dg_lock.png` | DG lock zeroes autonomous commit |
-| `05_failure_GOV02_blast_radius.png` | Blast-radius cap halts at cap+1 |
-| `06_judge_JDG01_ungrounded.png` | LLM-as-judge flags ungrounded compliance claim |
-| `07_injection_INJ01_redaction.png` | Prompt-injection filter redacts external text |
-| `08_escalation_ESC01_human_gate.png` | Human-gate escalation pauses workflow |
-| `09_audit_AUD02_tamper_detected.png` | Hash-chain detects tampered audit row |
-| `10_api_live_demo_pipeline.png` | Live demo API round-trip |
+| `ui/ui_01_landing_dashboard.png` | Landing / operations dashboard |
+| `ui/ui_06_yet_to_trigger.png` | `READY` order before workflow trigger |
+| `ui/ui_02_successful_run.png` | Successful run — all steps `DONE` |
+| `ui/ui_03_shared_state_logs.png` | Swimlane + agent activity + shared-state JSON |
+| `ui/ui_04_hitl_awaiting_human.png` | Failed routing / human gate open |
+| `ui/ui_05_in_transit.png` | In-transit / shipment execution running |
 
 ## Evaluation summary
 
 - **In-house scenarios executed (Phase 3):** 8 / 8 PASS across the six dimensions (end-to-end, governance, escalation, adversarial, judge, audit). Files: [`../../eval/test_cases.csv`](../../eval/test_cases.csv), [`../../eval/evaluation_results.csv`](../../eval/evaluation_results.csv), [`../../eval/pytest_phase3_run.txt`](../../eval/pytest_phase3_run.txt).
 - **CLASSic ablation study:** 630 trials (7 scenarios × 3 architectures × 30 repetitions). Full: A0 (AeroMind, full governance) vs A1 (no-governance) vs A2 (flat sequential ReAct). Accuracy 1.00 / Security 1.00 with σ = 0 for A0; 0.40 / 0.43 for A1 and A2. Cohen's *d* = 2.02 and 1.63. Files: [`../../eval/classic_methodology.md`](../../eval/classic_methodology.md), [`../../eval/run_classic_experiment.py`](../../eval/run_classic_experiment.py), [`../../eval/classic_runs.csv`](../../eval/classic_runs.csv), [`../../eval/classic_summary.csv`](../../eval/classic_summary.csv), [`../../eval/classic_pairwise.csv`](../../eval/classic_pairwise.csv), [`../../eval/ablations/`](../../eval/ablations/), [`../../eval/metrics/`](../../eval/metrics/).
-- **Failure cases (three documented):** FL-001 (DG-lock containment), FL-002 (blast-radius cap containment), FL-003 (evidence-path iteration — live full-mode API returned HTTP 500 without Postgres; pivoted to in-memory demo pipeline for screenshot 10, added demo-vs-full-mode README docs, captured 8 multi-mode responses under `outputs/sample_runs/`). Narrative: [`../../eval/failure_log.md`](../../eval/failure_log.md), [`../../eval/failure_analysis.md`](../../eval/failure_analysis.md). Includes an honest limitation note on `CLOSED_CLEAN` vs `AWAITING_HUMAN` semantics (FL-001 next-step improvement).
+- **Failure cases (three documented):** FL-001 (DG-lock containment), FL-002 (blast-radius cap containment), FL-003 (evidence-path iteration — live full-mode API returned HTTP 500 without Postgres; pivoted evidence to in-memory demo pipeline + `outputs/sample_runs/`, added demo-vs-full-mode README docs). Narrative: [`../../eval/failure_log.md`](../../eval/failure_log.md), [`../../eval/failure_analysis.md`](../../eval/failure_analysis.md). Includes an honest limitation note on `CLOSED_CLEAN` vs `AWAITING_HUMAN` semantics (FL-001 next-step improvement).
 - **Version notes:** [`../../eval/version_notes.md`](../../eval/version_notes.md) (commit, Python 3.13.7, pytest 9.0.2).
 
 ## List of submitted files and folders

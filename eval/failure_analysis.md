@@ -16,8 +16,7 @@ Evidence files:
 
 - `traces/trace_GOV01_dg_lock.json` — full orchestrator state dump
 - `traces/trace_GOV02_blast_radius.json` — full orchestrator state dump
-- `docs/screenshots/04_failure_GOV01_dg_lock.png` — screenshot summary
-- `docs/screenshots/05_failure_GOV02_blast_radius.png` — screenshot summary
+- `traces/trace_GOV01_dg_lock.json` / `traces/trace_GOV02_blast_radius.json` — trace evidence
 - `docs/screenshots/10_api_live_demo_pipeline.png` — the post-fix screenshot
   (demo pipeline) that replaced the planned full-mode API screenshot
 - `outputs/sample_runs/` — eight JSON samples captured from **both** the

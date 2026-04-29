@@ -5,7 +5,10 @@ Produces clean, labeled images from:
   - JSON traces (traces/*.json)
   - live API responses via /v1/workflows/run (if server is reachable)
 
-Output: docs/screenshots/*.png + screenshot_index.md
+Output (optional): when run, writes text-card PNGs under `docs/screenshots/`.
+The Phase-3 submission report embeds only real UI captures in
+`docs/screenshots/ui/`; regenerate those manually from the app. Trace evidence
+remains in `traces/*.json`.
 """
 
 from __future__ import annotations

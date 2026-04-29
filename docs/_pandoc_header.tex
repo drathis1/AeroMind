@@ -7,8 +7,9 @@
 \captionsetup{font=small,labelfont=bf}
 \setkeys{Gin}{width=0.92\linewidth,keepaspectratio}
 \let\OldIncludegraphics\includegraphics
+% Tighter max height so multiple figures can share a page in the condensed report.
 \renewcommand{\includegraphics}[2][]{%
-  \OldIncludegraphics[#1,width=0.92\linewidth,height=0.78\textheight,keepaspectratio]{#2}%
+  \OldIncludegraphics[#1,width=0.88\linewidth,height=0.48\textheight,keepaspectratio]{#2}%
 }
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\bottomfraction}{0.85}

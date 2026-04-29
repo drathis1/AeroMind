@@ -335,13 +335,15 @@ It covers all nine required sections:</p>
 <li>Lessons learned and future improvements</li>
 <li>Team contribution update</li>
 </ol>
-<p>plus four appendices (file reference, reproduction commands, API
-surface, references).</p>
+<p>plus two short appendices (reproduction commands, references).</p>
 <h2 id="architecture-diagram">Architecture diagram</h2>
 <ul>
+<li><a href="../../docs/architecture_full_phase2.png"><code>../../docs/architecture_full_phase2.png</code></a>
+— full four-layer system (Figure 1 in the final report)</li>
+<li><a href="../../docs/architecture_flow_phase2.png"><code>../../docs/architecture_flow_phase2.png</code></a>
+— orchestration &amp; governance runtime flow (Figure 2 reference)</li>
 <li><a href="../../docs/architecture_diagram.png"><code>../../docs/architecture_diagram.png</code></a>
-— five-layer system diagram (events → orchestrator → agents → governance
-→ shared state + human gate)</li>
+— earlier five-layer diagram (legacy)</li>
 <li><a href="../../docs/sequence_diagram.png"><code>../../docs/sequence_diagram.png</code></a>
 — <code>WEATHER_ALERT</code> two-phase fan-out sequence</li>
 <li><a href="../../docs/classic_radar.png"><code>../../docs/classic_radar.png</code></a>
@@ -350,8 +352,9 @@ sequential)</li>
 </ul>
 <p>Mermaid source for the primary diagram: <a href="../../docs/architecture_diagram.mmd"><code>../../docs/architecture_diagram.mmd</code></a>.</p>
 <h2 id="screenshot-index">Screenshot index</h2>
-<p>Ten captioned PNGs in <a href="../../docs/screenshots/"><code>../../docs/screenshots/</code></a>
-with index at <a href="../../docs/screenshots/screenshot_index.md"><code>../../docs/screenshots/screenshot_index.md</code></a>:</p>
+<p>Six captioned <strong>UI</strong> screenshots in <a href="../../docs/screenshots/ui/"><code>../../docs/screenshots/ui/</code></a>
+with index at <a href="../../docs/screenshots/screenshot_index.md"><code>../../docs/screenshots/screenshot_index.md</code></a>.
+Programmatic trace renders (<code>eval/render_screenshots.py</code>) are optional; trace JSON evidence lives in <a href="../../traces/"><code>../../traces/</code></a>.</p>
 <table>
 <colgroup>
 <col style="width: 50%" />
@@ -365,45 +368,28 @@ with index at <a href="../../docs/screenshots/screenshot_index.md"><code>../../d
 </thead>
 <tbody>
 <tr>
-<td><code>01_pytest_green.png</code></td>
-<td>8/8 regression tests passing</td>
+<td><code>ui/ui_01_landing_dashboard.png</code></td>
+<td>Landing / operations dashboard</td>
 </tr>
 <tr>
-<td><code>02_trace_E2E01_happy_path.png</code></td>
-<td>LoadIQ + CargoComply parallel fan-out,
-<code>CLOSED_CLEAN</code></td>
+<td><code>ui/ui_06_yet_to_trigger.png</code></td>
+<td><code>READY</code> order before workflow trigger</td>
 </tr>
 <tr>
-<td><code>03_trace_E2E02_two_phase.png</code></td>
-<td>Weather reroute — Phase 1 ClearPath → Phase 2 fan-out</td>
+<td><code>ui/ui_02_successful_run.png</code></td>
+<td>Successful run — all steps <code>DONE</code></td>
 </tr>
 <tr>
-<td><code>04_failure_GOV01_dg_lock.png</code></td>
-<td>DG lock zeroes autonomous commit</td>
+<td><code>ui/ui_03_shared_state_logs.png</code></td>
+<td>Swimlane + agent activity + shared-state JSON</td>
 </tr>
 <tr>
-<td><code>05_failure_GOV02_blast_radius.png</code></td>
-<td>Blast-radius cap halts at cap+1</td>
+<td><code>ui/ui_04_hitl_awaiting_human.png</code></td>
+<td>Failed routing / human gate open</td>
 </tr>
 <tr>
-<td><code>06_judge_JDG01_ungrounded.png</code></td>
-<td>LLM-as-judge flags ungrounded compliance claim</td>
-</tr>
-<tr>
-<td><code>07_injection_INJ01_redaction.png</code></td>
-<td>Prompt-injection filter redacts external text</td>
-</tr>
-<tr>
-<td><code>08_escalation_ESC01_human_gate.png</code></td>
-<td>Human-gate escalation pauses workflow</td>
-</tr>
-<tr>
-<td><code>09_audit_AUD02_tamper_detected.png</code></td>
-<td>Hash-chain detects tampered audit row</td>
-</tr>
-<tr>
-<td><code>10_api_live_demo_pipeline.png</code></td>
-<td>Live demo API round-trip</td>
+<td><code>ui/ui_05_in_transit.png</code></td>
+<td>In-transit / shipment execution running</td>
 </tr>
 </tbody>
 </table>
@@ -428,9 +414,8 @@ Security 1.00 with σ = 0 for A0; 0.40 / 0.43 for A1 and A2. Cohen’s
 <li><strong>Failure cases (three documented):</strong> FL-001 (DG-lock
 containment), FL-002 (blast-radius cap containment), FL-003
 (evidence-path iteration — live full-mode API returned HTTP 500 without
-Postgres; pivoted to in-memory demo pipeline for screenshot 10, added
-demo-vs-full-mode README docs, captured 8 multi-mode responses under
-<code>outputs/sample_runs/</code>). Narrative: <a href="../../eval/failure_log.md"><code>../../eval/failure_log.md</code></a>,
+Postgres; pivoted evidence to in-memory demo pipeline +
+<code>outputs/sample_runs/</code>, added demo-vs-full-mode README docs). Narrative: <a href="../../eval/failure_log.md"><code>../../eval/failure_log.md</code></a>,
 <a href="../../eval/failure_analysis.md"><code>../../eval/failure_analysis.md</code></a>.
 Includes an honest limitation note on <code>CLOSED_CLEAN</code> vs
 <code>AWAITING_HUMAN</code> semantics (FL-001 next-step
@@ -465,7 +450,7 @@ folders</h2>
 │   ├── version_notes.md
 │   ├── pytest_phase3_run.txt
 │   ├── capture_traces.py             # regenerates JSON traces
-│   ├── render_screenshots.py         # regenerates PNG evidence
+│   ├── render_screenshots.py         # optional trace-as-PNG cards
 │   ├── run_classic_experiment.py     # 630-trial ablation driver
 │   ├── classic_methodology.md        # pre-registered protocol
 │   ├── classic_runs.csv              # raw 630-row trial data
@@ -485,7 +470,7 @@ folders</h2>
 │   ├── render_sequence.py
 │   ├── render_classic_radar.py
 │   ├── _pandoc_header.tex
-│   └── screenshots/                  # 10 PNGs + screenshot_index.md
+│   └── screenshots/                  # ui/*.png + screenshot_index.md
 ├── outputs/
 │   └── sample_runs/                  # 8 representative JSON outputs
 ├── media/
