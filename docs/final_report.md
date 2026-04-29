@@ -46,7 +46,7 @@ governance disabled (Cohen's *d* = 2.02 and 1.63 respectively — "no overlap
 to speak of" effect sizes), and the same **0.40 / 0.43** for a flat
 sequential ReAct-style baseline. The composite pentagon-area score is
 **0.56 vs 0.20 (A1) vs 0.29 (A2)** — a 1.9–2.8× advantage over the ablated
-baselines (Figure 3, §5.2). The trade-off is real and quantified: AeroMind
+baselines (Figure 4, §5.2). The trade-off is real and quantified: AeroMind
 pays roughly 1 ms of orchestration overhead and 12% more tokens than the
 flat baseline (driven by the LLM-as-judge call), and the experiment
 isolates *which architectural layer* pays for *which dimension*.
@@ -54,8 +54,8 @@ isolates *which architectural layer* pays for *which dimension*.
 | Phase 3 deliverable | Status | Evidence |
 |---|---|---|
 | Runnable final artifact | Delivered | `aeromind/`, `web/`, `docker-compose.yml`; 8/8 unit tests pass on clean checkout |
-| Architecture + sequence diagrams | Delivered | `docs/architecture_diagram.png` · `docs/sequence_diagram.png` (Figure 2) |
-| CLASSic architectural comparison | Delivered | `docs/classic_radar.png` (Figure 3); §5.2 per-dimension measurements |
+| Architecture + sequence diagrams | Delivered | `docs/architecture_full_phase2.png` (Figure 1) · `docs/architecture_flow_phase2.png` (Figure 2) · `docs/sequence_diagram.png` (Figure 3) |
+| CLASSic architectural comparison | Delivered | `docs/classic_radar.png` (Figure 4); §5.2 per-dimension measurements |
 | **CLASSic ablation study (630 trials)** | Delivered | `eval/run_classic_experiment.py`, `eval/ablations/`, `eval/metrics/`, `eval/classic_runs.csv`, `eval/classic_summary.csv`, `eval/classic_pairwise.csv`, `eval/classic_methodology.md` |
 | Eight executed scenarios (of 35 planned) | Delivered | `eval/test_cases.csv`, `eval/evaluation_results.csv`, `traces/*.json` |
 | Three documented failure cases (two containment + one evidence-path iteration) | Delivered | `eval/failure_log.md`, `eval/failure_analysis.md`, §6 |
@@ -158,11 +158,31 @@ architectural decision in the system: it prevents race conditions, gives
 the system a single auditable point of control, and makes every safety
 guarantee enforceable at exactly one place.
 
-![AeroMind architecture](./architecture_diagram.png)
+![AeroMind full architecture — four-layer view with annotated agents and shared state](./architecture_full_phase2.png)
 
-*Figure 1 — AeroMind architecture. Solid arrows = primary orchestration flow;
-dashed = cross-agent handoff on confirmed reroute; red = escalation to human
-interface; grey = async state feedback. Source: `docs/architecture_diagram.mmd`.*
+*Figure 1 — AeroMind full architecture: data ingestion layer, LangGraph
+orchestrator, agent layer with LoadIQ / ClearPath / CargoComply,
+shared state store, and human interface layer. Each agent shows its
+own INPUTS, OUTPUTS, TOOLS, and AUTONOMY zone. Solid arrows = primary
+orchestration flow; blue dashed = cross-agent handoff on confirmed
+reroute; red dashed = escalation to human interface; grey dashed =
+async state write / feedback. Source:
+`docs/architecture_full_phase2.png` (carried forward from the Phase 2
+architecture pack).*
+
+![AeroMind orchestration and governance flow — runtime control flow with governance gates and HITL](./architecture_flow_phase2.png)
+
+*Figure 2 — AeroMind orchestration and governance flow. Live data
+ingestion (Weather, NOTAM, Airline Booking, Customs / Regulatory)
+fires events into the LangGraph orchestrator, which dispatches LoadIQ,
+ClearPath, and CargoComply over the shared state store with parallel
+task dispatch and reroute-driven handoffs. The Governance & Escalation
+Logic block — Blast-Radius Cap (>15 bulk events?), DG Dependency Lock
+state-machine guard, and LLM-as-Judge ungrounded check — sits at the
+commit boundary: passing all three gates results in an API commit to
+the airline system, while any failure routes to the Ops Manager
+dashboard for human review and manual override. Source:
+`docs/architecture_flow_phase2.png`.*
 
 ### 2.2 Layer summary
 
@@ -231,7 +251,7 @@ sequenceDiagram
 > If your Markdown viewer doesn't render Mermaid, a pre-rendered PNG of this
 > sequence is available at [`docs/sequence_diagram.png`](sequence_diagram.png).
 
-*Figure 2 — Two-phase handoff for a `WEATHER_ALERT` event. The first wave is
+*Figure 3 — Two-phase handoff for a `WEATHER_ALERT` event. The first wave is
 ClearPath only; the second wave (LoadIQ + CargoComply in parallel) is gated
 on `reroute_complete` being written to shared state. This is the flow
 captured verbatim in `traces/trace_E2E02_weather_disruption.json`.*
@@ -399,6 +419,126 @@ pytest tests/ -v
 # 6. Demo UI (in-memory, no DB required)
 cd web && npm install && npm run dev
 ```
+
+### 3.5 User-interface walkthrough — the demo flow
+
+The Next.js ops UI (`web/`) is the surface a cargo operations manager
+actually touches. It talks to the FastAPI demo router (`/api/demo/*`)
+which holds an in-memory store of orders, so this walkthrough is
+fully reproducible from a clean checkout (`docker-compose` is **not**
+required for this demo). Six screenshots tell the end-to-end UI story
+in the order an operator experiences it: landing → trigger → success →
+logs/state → human-in-the-loop containment → in-transit. Every screen
+is captured at 1440×900 against the same code under test.
+
+**Step 1 — User landing page.** The dashboard is the first screen on
+load. Each row is one workflow; the right-hand `STATUS` and
+`CURRENT AGENT` columns are colour-coded (green = `DELIVERED`,
+amber = `READY`, red = `AWAITING_HUMAN`, teal = `IN_TRANSIT`) so an
+operator can triage the queue at a glance. The `Create order` button
+opens the `NewOrderModal` for ad-hoc demos.
+
+![Screenshot UI-1 — operations dashboard / landing page](./screenshots/ui/ui_01_landing_dashboard.png)
+
+*Screenshot UI-1 — Operations dashboard. Live view of every cargo
+workflow with mixed states: `DELIVERED`, `READY`, `AWAITING_HUMAN`,
+`IN_TRANSIT`. The header strap-line — "Orchestrator coordinates
+CargoComply, ClearPath, and LoadIQ through shared state — agents
+never call each other directly" — encodes the Phase 1 architectural
+contract on the entry screen itself.*
+
+**Step 2 — Yet-to-be-triggered order.** Clicking a `READY` row opens
+the order detail. Here the entire pipeline is pending: only step 1
+("Order Created") is `DONE`; steps 2–6 are pending. The
+**Trigger workflow** button is highlighted as the next operator
+action, and **Mark delivered** is dimmed because no agents have run
+yet. Three injection buttons (**Docs / Route / Load**) along the
+header are demo-only controls that simulate adversarial conditions.
+
+![Screenshot UI-2 — yet-to-be-triggered order detail](./screenshots/ui/ui_06_yet_to_trigger.png)
+
+*Screenshot UI-2 — A `READY` order before the workflow is started.
+Agent-aware timeline shows step 1 done and steps 2–6 pending; the
+Coordination Hub diagram visualises that no agent-to-agent edges
+exist (every hop goes through the orchestrator). The
+**Trigger workflow** button is the affordance that begins
+orchestration.*
+
+**Step 3 — Successful run.** After triggering and stepping through
+(or **Run all (until pause)**), every agent posts its result to
+shared state and the timeline progresses 1 → 6. CargoComply runs
+first (compliance gate), ClearPath next (route planning), LoadIQ
+third (load optimisation), then Supplier executes the shipment, and
+finally Manufacturer marks the row delivered. The header pill turns
+**DONE** for every step.
+
+![Screenshot UI-3 — successful run, all six steps done](./screenshots/ui/ui_02_successful_run.png)
+
+*Screenshot UI-3 — A workflow that completed cleanly. All six
+agent-aware timeline steps show `DONE`, the Coordination Hub
+sequence resolves Shipper → Orchestrator → Agents → Supplier →
+Manufacturer, and no escalation row appears. This is a
+`CLOSED_CLEAN` workflow as defined in §2.5.*
+
+**Step 4 — Shared state, agent activity, swimlane.** Scrolling
+further on the same order surfaces three forensic panels: the
+**Swimlane view** (Shipper / Orchestrator / CargoComply / ClearPath
+/ LoadIQ / Supplier / Manufacturer rows with their respective
+notes), the **Agent activity** log strip (timestamped lines per
+agent), and the **Shared State (Orchestrator + Agents)** raw JSON
+panel showing `current_stage`, `active_agent`, `completed_agents`,
+`escalation_flag`, and `workflow_id`. This is the same shared-state
+view a compliance officer would inspect after the fact.
+
+![Screenshot UI-4 — swimlane, agent activity, shared-state JSON](./screenshots/ui/ui_03_shared_state_logs.png)
+
+*Screenshot UI-4 — Forensic view of a completed workflow. Swimlane
+shows each role's contribution; per-agent activity logs preserve
+timestamps and short summaries; the Shared State JSON exposes the
+exact structure the orchestrator and agents read and wrote. Note
+`completed_agents = [CARGOCOMPLY, CLEARPATH, LOADIQ]`,
+`escalation_flag = false`, `current_stage = "delivered"` — every
+guarantee in §2 made visible to a human reviewer.*
+
+**Step 5 — Human-in-the-loop containment.** When an injection
+fires (or a real route violates Phase-2 rules), the orchestrator
+halts and the UI reflects it immediately: the relevant timeline
+step turns **FAILED**, downstream steps stay **PENDING**, the
+SwimLane Orchestrator row shows "Human gate open", and the
+workflow status flips to `AWAITING_HUMAN`. No autonomous
+advancement occurs — the operator must explicitly resolve the gate
+through the API or UI.
+
+![Screenshot UI-5 — failed routing (ClearPath) awaiting human review](./screenshots/ui/ui_04_hitl_awaiting_human.png)
+
+*Screenshot UI-5 — Order with a forced route escalation. The
+agent-aware timeline shows step 3 (Route Planning, ClearPath)
+**FAILED** while steps 4–6 stay pending. The orchestrator swimlane
+explicitly states "Human gate open". This is the visible-to-the-user
+side of the same containment behaviour evidenced in `GOV-01` /
+`ESC-01` traces (§5.3, §6.1) and is the exact UX promised in
+§2.5.*
+
+**Step 6 — In-transit.** When the agents close clean and the
+shipment is handed off to the Supplier lane, the order moves to
+`IN_TRANSIT`. Step 5 ("Shipment Execution") flips to **RUNNING**;
+**Mark delivered** is enabled (highlighted green) so the operator
+can close the workflow once the carrier confirms delivery. Until
+then, the dashboard pill is the teal `IN_TRANSIT` state visible
+back on the landing page (Screenshot UI-1).
+
+![Screenshot UI-6 — order in transit awaiting carrier confirmation](./screenshots/ui/ui_05_in_transit.png)
+
+*Screenshot UI-6 — In-transit order. Steps 1–4 done, step 5 running
+(Supplier executing the shipment), step 6 pending (delivery
+confirmation). The **Mark delivered** button is enabled but no
+autonomous action is taken — the carrier-confirmation step is
+deliberately gated to the human in the loop.*
+
+Together, Screenshots UI-1 through UI-6 are the visual evidence that
+the architectural contract from §2 — **agents propose, the orchestrator
+commits, no agent-to-agent calls, every escalation is human-gated** —
+is enforced at the UI layer that the operations manager actually sees.
 
 ---
 
@@ -591,7 +731,7 @@ to the architecture itself, not to the agents.
 | Ablation trials run | **630** (3 archs × 7 scenarios × 30 reps) | `eval/classic_runs.csv` |
 | Measured Accuracy A0 vs A1 (governance ablated) | **1.00 vs 0.40** (Cohen's *d* = 2.02) | `eval/classic_summary.csv`, `eval/classic_pairwise.csv` |
 | Measured Security A0 vs A1 (governance ablated) | **1.00 vs 0.43** (Cohen's *d* = 1.63) | `eval/classic_pairwise.csv` |
-| CLASSic composite (pentagon area, normalised) | **A0: 0.56 · A1: 0.20 · A2: 0.29** | Figure 3, computation in `docs/render_classic_radar.py` |
+| CLASSic composite (pentagon area, normalised) | **A0: 0.56 · A1: 0.20 · A2: 0.29** | Figure 4, computation in `docs/render_classic_radar.py` |
 
 ![Screenshot 01 — pytest 8/8 passing on a clean checkout](./screenshots/01_pytest_green.png)
 
@@ -605,7 +745,7 @@ that the build under evaluation is healthy. Source:
 
 This is the primary result of Phase 3 and the section that distinguishes
 this submission from a literature comparison: **every value plotted in
-Figure 3 is a measurement from the 630-trial ablation study described in
+Figure 4 is a measurement from the 630-trial ablation study described in
 §4.6**, not a literature-derived estimate. The full per-trial CSV is in
 `eval/classic_runs.csv`; aggregate statistics are in
 `eval/classic_summary.csv`; pairwise effect sizes are in
@@ -647,9 +787,9 @@ overhead*; static prompt-token counts (the Cost dimension) are the
 LLM-independent budget that would actually be sent to a provider.
 §5.2.5 extrapolates both to live-LLM regimes.
 
-![Figure 3 — Measured CLASSic ablation: AeroMind (A0) vs governance-ablated hierarchical (A1) vs flat sequential (A2)](./classic_radar.png)
+![Figure 4 — Measured CLASSic ablation: AeroMind (A0) vs governance-ablated hierarchical (A1) vs flat sequential (A2)](./classic_radar.png)
 
-*Figure 3 — Data-driven radar: each vertex is the mean of 210 trials
+*Figure 4 — Data-driven radar: each vertex is the mean of 210 trials
 (7 scenarios × 30 repetitions) for one architecture. Score scale is 0–1;
 higher is better on every axis. Accuracy, Security and Stability are
 plotted in their natural [0,1] units. Cost and Latency are inverted via
@@ -675,7 +815,7 @@ polygons overlap.*
 
 #### 5.2.1 Per-dimension measurements with confidence intervals
 
-The five rows below are the values plotted in Figure 3, with raw means,
+The five rows below are the values plotted in Figure 4, with raw means,
 standard deviations, and 95% percentile-bootstrap confidence intervals
 computed from the per-trial measurements.
 
@@ -816,7 +956,7 @@ Machine-readable: `eval/evaluation_results.csv`. Raw pytest output:
 
 One authoritative trace narrative; full file is
 `traces/trace_E2E02_weather_disruption.json`. The same flow is diagrammed in
-§2.4, Figure 2 — this section shows the actual orchestrator state dump.
+§2.4, Figure 3 — this section shows the actual orchestrator state dump.
 
 ```
 Workflow   : W-E2E02-20260421-1410   Event: WEATHER_ALERT
@@ -1356,10 +1496,13 @@ Individual reflections (one per member) are in
 | **CLASSic metrics (subgoals, instrumentation, scoring)** | `eval/metrics/scenarios.py`, `instrumentation.py`, `classic_score.py` |
 | **CLASSic ablation results (raw + summary + pairwise)** | `eval/classic_runs.csv`, `classic_summary.csv`, `classic_pairwise.csv` |
 | Architecture diagram (PNG + Mermaid source) | `docs/architecture_diagram.png`, `docs/architecture_diagram.mmd` |
-| Sequence diagram (Figure 2) | `docs/sequence_diagram.png` (+ inline Mermaid in `docs/final_report.md` §2.4) |
-| CLASSic radar (Figure 3) | `docs/classic_radar.png` |
+| Architecture — full system (Figure 1) | `docs/architecture_full_phase2.png` |
+| Architecture — orchestration & governance flow (Figure 2) | `docs/architecture_flow_phase2.png` |
+| Sequence diagram (Figure 3) | `docs/sequence_diagram.png` (+ inline Mermaid in `docs/final_report.md` §2.4) |
+| CLASSic radar (Figure 4) | `docs/classic_radar.png` |
 | Diagram renderers | `docs/render_architecture.py`, `docs/render_sequence.py`, `docs/render_classic_radar.py` |
 | Screenshot index | `docs/screenshots/screenshot_index.md` |
+| UI walkthrough (6 screenshots, §3.5) | `docs/screenshots/ui/ui_01_landing_dashboard.png` … `ui_06_yet_to_trigger.png` |
 | Interaction traces | `traces/trace_{E2E01,E2E02,GOV01,GOV02,JDG01,INJ01,ESC01,AUD02}_*.json` |
 | Representative outputs | `outputs/sample_runs/00_health.json` through `07_tool_try_cargocomply_booking_denied.json` |
 | AI usage disclosure | `AI_USAGE.md` |
@@ -1397,10 +1540,11 @@ PYTHONPATH=. python3 eval/render_screenshots.py
 PYTHONPATH=. python3 eval/run_classic_experiment.py --reps 30 --seed 42
 # Outputs: eval/classic_runs.csv, classic_summary.csv, classic_pairwise.csv
 
-# 6. Diagrams — re-render all three report figures (Figure 3 reads the CSV from step 5)
-python3 docs/render_architecture.py    # Figure 1  → docs/architecture_diagram.png
-python3 docs/render_sequence.py        # Figure 2  → docs/sequence_diagram.png
-python3 docs/render_classic_radar.py   # Figure 3  → docs/classic_radar.png
+# 6. Diagrams — re-render all four report figures (Figure 4 reads the CSV from step 5).
+#    Figures 1 and 2 (the colourful Phase-2 architecture pack) are static
+#    PNG assets carried forward; nothing to re-render.
+python3 docs/render_sequence.py        # Figure 3  → docs/sequence_diagram.png
+python3 docs/render_classic_radar.py   # Figure 4  → docs/classic_radar.png
 
 # 7. (Optional) Final report PDF — requires pandoc + xelatex
 #    docs/_pandoc_header.tex constrains image sizes and supplies a
@@ -1456,7 +1600,7 @@ OpenAPI spec: `GET /openapi.json` on the running server.
    Evaluation.** arXiv:2601.12560, 2026. — Introduces the CLASSic
    five-dimension framework (Cost, Latency, Accuracy, Security, Stability)
    and the Figure 4 multidimensional architectural comparison used as the
-   template for AeroMind's Figure 3.
+   template for AeroMind's Figure 4.
 2. Wornow, M., *et al.* **Top of the CLASS: Benchmarking LLM Agents on
    Real-World Enterprise Tasks.** ICLR Workshop on Agents, 2025. —
    Operationalizes CLASSic with a per-dimension target table; the
